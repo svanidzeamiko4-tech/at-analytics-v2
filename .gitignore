@@ -1,0 +1,22 @@
+# Databases
+*.db
+*.sqlite
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Logs
+*.log
+pipeline_*.log
+
+# PDFs
+*.pdf
+processed/
+split_invoices/
+
+# Auth DB
+auth/at_auth.db
+phase_2_dashboard/auth/at_auth.db
