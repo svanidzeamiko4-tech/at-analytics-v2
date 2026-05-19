@@ -29,20 +29,19 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    """
-<style>
-/* Hide default Streamlit multipage navigation */
+
+def _css() -> str:
+    return """
 [data-testid="stSidebarNav"] {
     display: none !important;
 }
 section[data-testid="stSidebarNav"] {
     display: none !important;
 }
-</style>
-""",
-    unsafe_allow_html=True,
-)
+"""
+
+
+st.markdown(f"<style>{_css()}</style>", unsafe_allow_html=True)
 
 # Re-export theme tokens (constants live in ui_theme.py).
 from ui_theme import (  # noqa: E402
