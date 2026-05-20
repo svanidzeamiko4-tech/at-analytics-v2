@@ -7,21 +7,13 @@ import re
 import pandas as pd
 import plotly.graph_objects as go
 
-from ui_theme import ACCENT, BORDER, FONT_BODY, MUTED, PRIMARY, TEXT
+from ui_theme import ACCENT, PRIMARY, plotly_axis_style
 
-FONT = FONT_BODY
-GRID = BORDER
 CHART_PRIMARY = PRIMARY
 CHART_ACCENT = ACCENT
 
 
 def _clean_product_name(name: str) -> str:
-    """
-    Remove OCR table artifacts:
-    '| 6 | სენდვიჩ ტოსტი' → 'სენდვიჩ ტოსტი'
-    '| 38 | პეროგი' → 'პეროგი'
-    '3 | კულიჩი' → 'კულიჩი'
-    """
     s = str(name or "").strip()
     s = re.sub(r"^\|?\s*\d+\s*\|\s*", "", s)
     s = re.sub(r"^\d+\.\s*", "", s)
@@ -38,10 +30,6 @@ def _extract_product_name(label: str) -> str:
 
 
 def top_products_chart(df: pd.DataFrame, top_n: int = 15) -> go.Figure:
-    """
-    Horizontal bars — product name only (no store prefix).
-    Groups by product across all stores.
-    """
     fig = go.Figure()
     if df.empty:
         fig.add_annotation(
@@ -51,13 +39,8 @@ def top_products_chart(df: pd.DataFrame, top_n: int = 15) -> go.Figure:
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(color=MUTED),
         )
-        fig.update_layout(
-            height=300,
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-        )
+        fig.update_layout(height=300)
         return fig
 
     label_col = "product_label" if "product_label" in df.columns else df.columns[0]
@@ -83,7 +66,7 @@ def top_products_chart(df: pd.DataFrame, top_n: int = 15) -> go.Figure:
             orientation="h",
             y=d["product"],
             x=d["quantity"],
-            marker=dict(color=colors, line=dict(width=0)),
+            marker=dict(color=colors, line=dict(width=0), cornerradius=6),
             customdata=d[["sales_gel"]].values,
             hovertemplate=(
                 "<b>%{y}</b><br>"
@@ -93,31 +76,21 @@ def top_products_chart(df: pd.DataFrame, top_n: int = 15) -> go.Figure:
             ),
             texttemplate="%{x:,.0f}",
             textposition="outside",
-            textfont=dict(color=MUTED, size=10),
+            textfont=dict(size=10),
         )
     )
+    axis = plotly_axis_style()
     fig.update_layout(
         height=h,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=TEXT, family=FONT, size=10),
         margin=dict(l=10, r=50, t=30, b=20),
         title=dict(
             text=f"ტოპ {top_n} პროდუქტი (რაოდენობა)",
-            font=dict(size=13, color=TEXT),
+            font=dict(size=13),
             x=0.5,
             xanchor="center",
         ),
-        xaxis=dict(
-            gridcolor=GRID,
-            zeroline=False,
-            tickfont=dict(size=9, color=MUTED),
-        ),
-        yaxis=dict(
-            automargin=True,
-            showgrid=False,
-            tickfont=dict(size=10, color=TEXT),
-        ),
+        xaxis=dict(**axis, zeroline=False),
+        yaxis=dict(automargin=True, showgrid=False),
         showlegend=False,
         dragmode=False,
     )

@@ -1,0 +1,43 @@
+/* AT Analytics — base layer (loaded after design-tokens.css) */
+
+html {
+  transition: background var(--transition-smooth), color var(--transition-smooth);
+}
+
+body,
+.stApp,
+[data-testid="stAppViewContainer"] {
+  font-family: var(--font-family);
+  background: var(--color-bg-main);
+  color: var(--color-text-primary);
+  transition: background var(--transition-smooth), color var(--transition-smooth);
+}
+
+[data-theme="dark"] .stApp,
+[data-theme="dark"] [data-testid="stAppViewContainer"] {
+  background: var(--color-gradient-main) !important;
+}
+
+[data-theme="light"] .stApp,
+[data-theme="light"] [data-testid="stAppViewContainer"] {
+  background: var(--color-gradient-main) !important;
+}
+
+.container,
+.at-container {
+  padding: var(--space-5);
+}
+
+.main-title {
+  color: var(--color-primary);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  font-family: var(--font-heading);
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  margin-top: var(--space-2);
+}

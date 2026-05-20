@@ -9,29 +9,33 @@ import streamlit as st
 
 _LOGO_PATH = Path(__file__).resolve().parent / "assets" / "at_analytics_logo.png"
 
-# --- Design system palette ---
-PRIMARY = "#00D1C7"
-PRIMARY_DARK = "#00A8A0"
+_PKG = Path(__file__).resolve().parent
+
+# --- Design system palette (2026 SaaS) ---
+PRIMARY = "#00C2D1"
+PRIMARY_DARK = "#00A8B5"
 ACCENT = "#7C3AED"
-BG = "#0B1220"
+BG = "#0B1120"
 CARD = "#111827"
 CARD_HOVER = "#1F2937"
-BORDER = "#1E293B"
+BORDER = "#1F2937"
 TEXT = "#E5E7EB"
 MUTED = "#9CA3AF"
-SUCCESS = "#10B981"
+SUCCESS = "#22C55E"
 WARNING = "#F59E0B"
 DANGER = "#EF4444"
+TOOLTIP_BG = "#0F172A"
 
-PRIMARY_GLOW = "rgba(0, 209, 199, 0.35)"
-PRIMARY_DIM = "rgba(0, 209, 199, 0.12)"
+PRIMARY_GLOW = "rgba(0, 194, 209, 0.35)"
+PRIMARY_DIM = "rgba(0, 194, 209, 0.14)"
+PLOTLY_GRID = "rgba(31, 41, 55, 0.08)"
 ACCENT_DIM = "rgba(124, 58, 237, 0.14)"
 SUCCESS_DIM = "rgba(16, 185, 129, 0.14)"
 
 RADIUS = "16px"
 CARD_PADDING = "24px"
 
-FONT_HEADING = "'Sora', 'Inter', system-ui, sans-serif"
+FONT_HEADING = "'Inter', system-ui, sans-serif"
 FONT_BODY = "'Inter', system-ui, sans-serif"
 FONT_NUMBERS = "'Space Grotesk', 'Inter', system-ui, sans-serif"
 FONT_FAMILY = FONT_BODY
@@ -49,9 +53,122 @@ GRID = BORDER
 GOOGLE_FONTS_URL = (
     "https://fonts.googleapis.com/css2?"
     "family=Inter:wght@400;500;600;700&"
-    "family=Sora:wght@600;700&"
     "family=Space+Grotesk:wght@500;600;700&display=swap"
 )
+
+
+def load_design_css() -> str:
+    """Load design system cascade: tokens → base → components."""
+    chunks: list[str] = []
+    for name in ("design-tokens.css", "base.css", "components.css"):
+        path = _PKG / name
+        if path.is_file():
+            chunks.append(path.read_text(encoding="utf-8"))
+    return "\n".join(chunks)
+
+
+def is_light_mode() -> bool:
+    """True when light theme is active (``dark_mode`` is False)."""
+    return not st.session_state.get("dark_mode", True)
+
+
+def plotly_axis_style() -> dict[str, object]:
+    """Axis dict for chart builders (final colors come from ``apply_plotly_theme``)."""
+    is_dark = st.session_state.get("dark_mode", True)
+    grid_color = "#1F2937" if is_dark else "#E5E7EB"
+    text_color = "#E5E7EB" if is_dark else "#64748B"
+    return dict(
+        gridcolor=grid_color,
+        zerolinecolor=grid_color,
+        tickfont=dict(size=12, color=text_color),
+    )
+
+
+def get_theme_name() -> str:
+    return "dark" if st.session_state.get("dark_mode", True) else "light"
+
+
+def apply_plotly_theme(fig: object) -> object:
+    """
+    Repaint Plotly layout on every rerun (bypasses any frozen figure styling).
+    Must run immediately before ``st.plotly_chart``.
+    """
+    is_dark = st.session_state.get("dark_mode", True)
+
+    paper_bg = "#0B1120" if is_dark else "#F4F7FB"
+    plot_bg = "#0F172A" if is_dark else "#FFFFFF"
+    text_color = "#E5E7EB" if is_dark else "#111827"
+    grid_color = "#1F2937" if is_dark else "#E5E7EB"
+    hover_bg = "#151F32" if is_dark else "#FFFFFF"
+
+    axis_style = dict(
+        gridcolor=grid_color,
+        zerolinecolor=grid_color,
+        color=text_color,
+        tickfont=dict(color=text_color, family="Inter, Fira GO, sans-serif"),
+        title=dict(font=dict(color=text_color, family="Inter, Fira GO, sans-serif")),
+    )
+
+    fig.update_layout(
+        paper_bgcolor=paper_bg,
+        plot_bgcolor=plot_bg,
+        font=dict(color=text_color, family="Inter, Fira GO, sans-serif", size=11),
+        legend=dict(font=dict(color=text_color), bgcolor="rgba(0,0,0,0)"),
+        hoverlabel=dict(
+            bgcolor=hover_bg,
+            bordercolor=grid_color,
+            font=dict(color=text_color, size=12),
+        ),
+    )
+    fig.update_xaxes(**axis_style)
+    fig.update_yaxes(**axis_style)
+
+    fig.update_layout(title_font=dict(color=text_color))
+
+    if fig.layout.annotations:
+        fig.update_annotations(font=dict(color=text_color))
+
+    pie_line = "#FFFFFF" if is_light_mode() else "#0F172A"
+    fig.update_traces(textfont=dict(color=text_color))
+    fig.update_traces(
+        marker=dict(line=dict(color=pie_line)),
+        selector=dict(type="pie"),
+    )
+    # Do not override scatter/line stroke colors (keep brand cyan/green data series).
+
+    return fig
+
+
+def themed_plotly_chart(
+    fig: object,
+    *,
+    use_container_width: bool = True,
+    config: dict | None = None,
+    key: str | None = None,
+    **kwargs: object,
+) -> None:
+    """Render Plotly with theme applied at display time (not at figure build time)."""
+    theme = get_theme_name()
+    render_key = f"{key}_{theme}" if key else None
+    st.plotly_chart(
+        apply_plotly_theme(fig),
+        use_container_width=use_container_width,
+        config=config if config is not None else PLOTLY_STREAMLIT_CONFIG,
+        key=render_key,
+        **kwargs,
+    )
+
+
+def chart_muted_color() -> str:
+    return "#64748B" if is_light_mode() else MUTED
+
+
+def chart_text_color() -> str:
+    return "#0F172A" if is_light_mode() else TEXT
+
+
+def chart_pie_line_color() -> str:
+    return "#FFFFFF" if is_light_mode() else BG
 
 GEO = {
     "report_sub": "ბიზნეს ანალიტიკისა და მარაგების მართვის სისტემა",

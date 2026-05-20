@@ -5,22 +5,14 @@ from __future__ import annotations
 import pandas as pd
 import plotly.graph_objects as go
 
-from ui_theme import (
-    ACCENT,
-    BG,
-    BORDER,
-    FONT_BODY,
-    MUTED,
-    PRIMARY,
-    PRIMARY_DARK,
-    SUCCESS,
-    TEXT,
-)
+from ui_theme import ACCENT, PRIMARY, PRIMARY_DARK, SUCCESS, plotly_axis_style
 
-BRAND_CYAN = PRIMARY
-BRAND_MINT = SUCCESS
-FONT = FONT_BODY
-GRID = BORDER
+# Brand design theme colors (fallback definitions)
+BRAND_CYAN = "#00C2D1"
+BRAND_GREEN = "#10B981"
+BRAND_RED = "#EF4444"
+BRAND_MINT = BRAND_GREEN
+
 COLORS = [
     PRIMARY,
     SUCCESS,
@@ -51,13 +43,8 @@ def store_donut(df: pd.DataFrame) -> go.Figure:
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(color=MUTED),
         )
-        fig.update_layout(
-            height=300,
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-        )
+        fig.update_layout(height=300)
         return fig
 
     d = df.nlargest(10, "revenue_gel").copy()
@@ -76,23 +63,20 @@ def store_donut(df: pd.DataFrame) -> go.Figure:
             hole=0.55,
             textinfo="percent",
             textposition="inside",
-            textfont=dict(size=10, color=TEXT),
+            textfont=dict(size=10),
             marker=dict(
                 colors=COLORS * (len(d) // len(COLORS) + 1),
-                line=dict(color=BG, width=1.5),
+                line=dict(width=1.5),
             ),
             hovertemplate="<b>%{label}</b><br>%{value:,.0f} ₾ (%{percent})<extra></extra>",
         )
     )
     fig.update_layout(
         height=320,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=TEXT, family=FONT, size=10),
         margin=dict(l=0, r=0, t=30, b=100),
         title=dict(
             text="შემოსავლის წილი (%)",
-            font=dict(size=13, color=TEXT),
+            font=dict(size=13),
             x=0.5,
             xanchor="center",
         ),
@@ -102,7 +86,7 @@ def store_donut(df: pd.DataFrame) -> go.Figure:
             xanchor="center",
             y=-0.25,
             yanchor="top",
-            font=dict(size=9, color=TEXT),
+            font=dict(size=9),
             bgcolor="rgba(0,0,0,0)",
         ),
         dragmode=False,
@@ -112,10 +96,7 @@ def store_donut(df: pd.DataFrame) -> go.Figure:
 
 
 def sales_returns_bar(df: pd.DataFrame) -> go.Figure:
-    """
-    Horizontal bar chart — store names readable on mobile.
-    Shows TOP 15 stores by sales.
-    """
+    """Horizontal bar chart — TOP 15 stores by sales."""
     fig = go.Figure()
     if df.empty:
         fig.add_annotation(
@@ -125,13 +106,8 @@ def sales_returns_bar(df: pd.DataFrame) -> go.Figure:
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(color=MUTED),
         )
-        fig.update_layout(
-            height=300,
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-        )
+        fig.update_layout(height=300)
         return fig
 
     d = (
@@ -155,7 +131,7 @@ def sales_returns_bar(df: pd.DataFrame) -> go.Figure:
             y=ys,
             x=d["sales_gel"],
             orientation="h",
-            marker=dict(color=BRAND_CYAN, line=dict(width=0)),
+            marker=dict(color=BRAND_CYAN, line=dict(width=0), cornerradius=6),
             hovertemplate="<b>%{y}</b><br>გაყიდვები: %{x:,.0f} ₾<extra></extra>",
         )
     )
@@ -165,22 +141,20 @@ def sales_returns_bar(df: pd.DataFrame) -> go.Figure:
             y=ys,
             x=d["returns_gel"],
             orientation="h",
-            marker=dict(color=BRAND_MINT, line=dict(width=0)),
+            marker=dict(color=BRAND_MINT, line=dict(width=0), cornerradius=6),
             hovertemplate="<b>%{y}</b><br>დაბრუნება: %{x:,.0f} ₾<extra></extra>",
         )
     )
+    axis = plotly_axis_style()
     fig.update_layout(
         height=h,
         barmode="group",
         bargap=0.25,
         bargroupgap=0.1,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=TEXT, family=FONT, size=10),
         margin=dict(l=10, r=60, t=30, b=60),
         title=dict(
             text="გაყიდვები vs დაბრუნება (ტოპ 15)",
-            font=dict(size=13, color=TEXT),
+            font=dict(size=13),
             x=0.5,
             xanchor="center",
         ),
@@ -193,18 +167,8 @@ def sales_returns_bar(df: pd.DataFrame) -> go.Figure:
             bgcolor="rgba(0,0,0,0)",
             font=dict(size=11),
         ),
-        xaxis=dict(
-            gridcolor=GRID,
-            zeroline=True,
-            tickformat=",.0f",
-            ticksuffix=" ₾",
-            tickfont=dict(size=9, color=MUTED),
-        ),
-        yaxis=dict(
-            automargin=True,
-            showgrid=False,
-            tickfont=dict(size=10, color=TEXT),
-        ),
+        xaxis=dict(**axis, zeroline=True, tickformat=",.0f", ticksuffix=" ₾"),
+        yaxis=dict(automargin=True, showgrid=False),
         dragmode=False,
     )
     fig.update_xaxes(fixedrange=True)
@@ -223,13 +187,8 @@ def return_rate_chart(df: pd.DataFrame) -> go.Figure:
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(color=MUTED),
         )
-        fig.update_layout(
-            height=300,
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-        )
+        fig.update_layout(height=300)
         return fig
 
     d = df.copy()
@@ -243,13 +202,8 @@ def return_rate_chart(df: pd.DataFrame) -> go.Figure:
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(color=MUTED),
         )
-        fig.update_layout(
-            height=300,
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-        )
+        fig.update_layout(height=300)
         return fig
 
     d = d.dropna(subset=["return_pct"]).copy()
@@ -257,46 +211,34 @@ def return_rate_chart(df: pd.DataFrame) -> go.Figure:
     d = d.nlargest(20, "abs_rate").sort_values("return_pct")
 
     ys = d["store_name"].map(lambda x: _short(x, 25))
-    colors = ["#f87171" if v < 0 else "#11CAA0" for v in d["return_pct"]]
+    colors = ["#f87171" if v < 0 else BRAND_CYAN for v in d["return_pct"]]
 
     fig.add_trace(
         go.Bar(
             orientation="h",
             y=ys,
             x=d["return_pct"],
-            marker=dict(color=colors, line=dict(width=0)),
+            marker=dict(color=colors, line=dict(width=0), cornerradius=8),
             hovertemplate="<b>%{y}</b><br>Return Rate: %{x:.1f}%<extra></extra>",
             text=d["return_pct"].map(lambda x: f"{x:.1f}%"),
             textposition="outside",
-            textfont=dict(size=10, color=MUTED),
+            textfont=dict(size=10),
         )
     )
 
     n = len(d)
+    axis = plotly_axis_style()
     fig.update_layout(
         height=max(300, n * 32),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=TEXT, family=FONT, size=10),
         margin=dict(l=10, r=60, t=30, b=20),
         title=dict(
             text="Return Rate % — მაღაზიები",
-            font=dict(size=13, color=TEXT),
+            font=dict(size=13),
             x=0.5,
             xanchor="center",
         ),
-        xaxis=dict(
-            gridcolor=GRID,
-            zeroline=True,
-            zerolinecolor="rgba(255,255,255,0.2)",
-            ticksuffix="%",
-            tickfont=dict(size=9, color=MUTED),
-        ),
-        yaxis=dict(
-            automargin=True,
-            showgrid=False,
-            tickfont=dict(size=10, color=TEXT),
-        ),
+        xaxis=dict(**axis, zeroline=True, ticksuffix="%"),
+        yaxis=dict(automargin=True, showgrid=False),
         showlegend=False,
         dragmode=False,
     )

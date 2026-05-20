@@ -12,10 +12,10 @@ import pandas as pd
 import streamlit as st
 
 from charts.store_charts import return_rate_chart
-from data_loader import returns_vs_sales_by_store
+from components.stat_card import render_stat_grid
+from data_loader import returns_vs_sales_by_store, top_products_by_quantity
 
-_PLOTLY_CFG: dict = {"displayModeBar": False}
-from ui_theme import BG, BORDER, CARD_HOVER, FONT_BODY, MUTED, PRIMARY, SUCCESS, TEXT
+from ui_theme import BG, BORDER, CARD_HOVER, FONT_BODY, MUTED, PRIMARY, SUCCESS, TEXT, themed_plotly_chart
 
 _FONT = FONT_BODY
 _CARD_MUTED = MUTED
@@ -263,45 +263,54 @@ def render_store_efficiency_section(
     total_returns = float(m["returns_gel"].sum())
     net_avg = (total_returns / total_sales * 100.0) if total_sales > 1e-9 else 0.0
 
-    c1, c2, c3 = st.columns(3)
+    top_df = top_products_by_quantity(invoices, lines, d_start, d_end, top_n=1)
+    if top_df.empty:
+        top_prod = "—"
+        top_prod_chg = None
+    else:
+        tr = top_df.iloc[0]
+        top_prod = _truncate(str(tr.get("product_label", "")), 32)
+        top_prod_chg = f"{float(tr.get('quantity', 0)):,.0f} ც"
+
     if not m_valid.empty:
         best = m_valid.nsmallest(1, "return_rate_pct").iloc[0]
-        worst = m_valid.nlargest(1, "return_rate_pct").iloc[0]
-        with c1:
-            st.metric(
-                "საუკეთესო მაღაზია",
-                _truncate(str(best["store_name"]), 28),
-                delta=f"{float(best['return_rate_pct']):.2f}% return rate",
-                delta_color="normal",
-                help="ყველაზე დაბალი Return Rate (Sales > 0)",
-            )
-        with c2:
-            st.metric(
-                "პრობლემური მაღაზია",
-                _truncate(str(worst["store_name"]), 28),
-                delta=f"{float(worst['return_rate_pct']):.2f}% return rate",
-                delta_color="inverse",
-                help="ყველაზე მაღალი Return Rate (Sales > 0)",
-            )
+        partner_name = _truncate(str(best["store_name"]), 28)
+        partner_chg = f"{float(best['return_rate_pct']):.2f}% · ყველაზე დაბალი RR"
+        partner_status = "highlight"
     else:
-        with c1:
-            st.metric("საუკეთესო მაღაზია", "—", help="არ არის მაღაზია დადებითი გაყიდვით")
-        with c2:
-            st.metric("პრობლემური მაღაზია", "—", help="არ არის მაღაზია დადებითი გაყიდვით")
+        partner_name = "—"
+        partner_chg = "მონაცემი არ არის"
+        partner_status = "neutral"
 
-    with c3:
-        st.metric(
-            "საშუალო დაბრუნების კოეფიციენტი (ქსელი)",
-            f"{net_avg:.2f}%",
-            help="(ჯამური დაბრუნებები / ჯამური გაყიდვები) × 100",
-        )
-
-    st.plotly_chart(
-        return_rate_chart(m),
-        use_container_width=True,
-        config=_PLOTLY_CFG,
-        key="store_return_rate_hbar",
+    render_stat_grid(
+        [
+            {
+                "title": "ტოპ პროდუქტი",
+                "value": top_prod,
+                "change": top_prod_chg,
+                "status": "highlight" if top_prod_chg else "neutral",
+            },
+            {
+                "title": "ტოპ პარტნიორი",
+                "value": partner_name,
+                "change": partner_chg,
+                "status": partner_status,
+            },
+            {
+                "title": "საშუალო დაბრუნება",
+                "value": f"{net_avg:.2f}%",
+                "change": "ქსელის საშუალო RR",
+                "status": "success" if net_avg <= 10 else ("warning" if net_avg <= 22 else "danger"),
+            },
+        ]
     )
+
+    st.markdown('<div class="chart-panel">', unsafe_allow_html=True)
+    chart_df = m.copy()
+    if "return_pct" not in chart_df.columns:
+        chart_df["return_pct"] = chart_df.get("return_rate_pct")
+    themed_plotly_chart(return_rate_chart(chart_df), key="store_return_rate_hbar")
+    st.markdown("</div>", unsafe_allow_html=True)
 
     with st.expander("დეტალური ცხრილი (მაღაზია)", expanded=False):
         st.markdown(_STORE_DETAIL_UI_CSS, unsafe_allow_html=True)

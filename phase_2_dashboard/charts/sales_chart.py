@@ -5,14 +5,12 @@ from __future__ import annotations
 import pandas as pd
 import plotly.graph_objects as go
 
-from ui_theme import BORDER, FONT_BODY, MUTED, PRIMARY, PRIMARY_DIM, SUCCESS, SUCCESS_DIM, TEXT
+from ui_theme import PRIMARY, PRIMARY_DIM, SUCCESS, SUCCESS_DIM, plotly_axis_style
 
 BRAND_CYAN = PRIMARY
 BRAND_MINT = SUCCESS
 BRAND_CYAN_DIM = PRIMARY_DIM
 BRAND_MINT_DIM = SUCCESS_DIM
-FONT = FONT_BODY
-GRID = BORDER
 
 
 def sparkline(daily: pd.DataFrame) -> go.Figure:
@@ -23,7 +21,7 @@ def sparkline(daily: pd.DataFrame) -> go.Figure:
                 x=daily["day"],
                 y=daily["revenue_gel"],
                 mode="lines",
-                line=dict(color=BRAND_CYAN, width=2),
+                line=dict(color=BRAND_CYAN, width=2, shape="spline"),
                 fill="tozeroy",
                 fillcolor=BRAND_CYAN_DIM,
                 hovertemplate="%{x|%d %b}: <b>%{y:,.0f} ₾</b><extra></extra>",
@@ -32,8 +30,6 @@ def sparkline(daily: pd.DataFrame) -> go.Figure:
     fig.update_layout(
         height=70,
         margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(visible=False),
         yaxis=dict(visible=False),
         showlegend=False,
@@ -53,12 +49,10 @@ def sales_returns_area(df: pd.DataFrame) -> go.Figure:
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(color=MUTED, size=13),
+            font=dict(size=13),
         )
         fig.update_layout(
             height=200,
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
             xaxis=dict(visible=False),
             yaxis=dict(visible=False),
         )
@@ -74,7 +68,7 @@ def sales_returns_area(df: pd.DataFrame) -> go.Figure:
             y=d["sales_gel"],
             name="გაყიდვები",
             mode="lines",
-            line=dict(color=BRAND_CYAN, width=2.5),
+            line=dict(color=BRAND_CYAN, width=2, shape="spline"),
             fill="tozeroy",
             fillcolor=BRAND_CYAN_DIM,
             hovertemplate="%{x|%d %b}<br>გაყიდვები: <b>%{y:,.0f} ₾</b><extra></extra>",
@@ -86,17 +80,15 @@ def sales_returns_area(df: pd.DataFrame) -> go.Figure:
             y=y_ret,
             name="დაბრუნება",
             mode="lines",
-            line=dict(color=BRAND_MINT, width=2),
+            line=dict(color=BRAND_MINT, width=2, shape="spline"),
             fill="tozeroy",
             fillcolor=BRAND_MINT_DIM,
             hovertemplate="%{x|%d %b}<br>დაბრუნება: <b>%{y:,.0f} ₾</b><extra></extra>",
         )
     )
+    axis = plotly_axis_style()
     fig.update_layout(
         height=260,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=TEXT, family=FONT, size=11),
         margin=dict(l=40, r=10, t=10, b=80),
         legend=dict(
             orientation="h",
@@ -108,19 +100,16 @@ def sales_returns_area(df: pd.DataFrame) -> go.Figure:
             font=dict(size=11),
         ),
         xaxis=dict(
-            gridcolor=GRID,
+            **axis,
             zeroline=False,
             tickformat="%d %b",
             tickangle=-30,
-            tickfont=dict(size=10, color=MUTED),
         ),
         yaxis=dict(
-            gridcolor=GRID,
+            **axis,
             zeroline=True,
-            zerolinecolor="rgba(255,255,255,0.07)",
             tickformat=",.0f",
             rangemode="tozero",
-            tickfont=dict(size=10, color=MUTED),
             ticksuffix=" ₾",
         ),
         dragmode=False,

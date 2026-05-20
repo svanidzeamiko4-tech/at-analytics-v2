@@ -35,15 +35,18 @@ from ui_theme import (
     RADIUS,
     SUCCESS,
     TEXT,
+    load_design_css,
 )
 
 LOGO_PATH = Path(__file__).resolve().parent / "assets" / "at_analytics_logo.png"
 
 
 def apply_css() -> None:
+    tokens_css = load_design_css()
     st.markdown(
         f"""
         <style>
+        {tokens_css}
         @import url('{GOOGLE_FONTS_URL}');
 
         .stApp {{
@@ -63,6 +66,8 @@ def apply_css() -> None:
         h1, h2, h3, h4 {{
             font-family: {FONT_HEADING} !important;
             color: {TEXT} !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.5px;
         }}
         p, label, .stMarkdown {{
             font-family: {FONT_BODY};
@@ -347,6 +352,40 @@ def apply_css() -> None:
             }}
         }}
         </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def mobile_drawer_js() -> None:
+    st.markdown(
+        """
+        <script>
+        (function () {
+            const doc = window.parent.document;
+            const btn = doc.getElementById("at-menu-btn");
+            const overlay = doc.getElementById("at-sidebar-overlay");
+            const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+            if (!btn || !sidebar) return;
+            function closeDrawer() {
+                sidebar.classList.remove("at-open");
+                if (overlay) overlay.classList.remove("at-visible");
+            }
+            function openDrawer() {
+                sidebar.classList.add("at-open");
+                if (overlay) overlay.classList.add("at-visible");
+            }
+            btn.addEventListener("click", function (e) {
+                e.preventDefault();
+                if (sidebar.classList.contains("at-open")) closeDrawer();
+                else openDrawer();
+            });
+            if (overlay) overlay.addEventListener("click", closeDrawer);
+            doc.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") closeDrawer();
+            });
+        })();
+        </script>
         """,
         unsafe_allow_html=True,
     )

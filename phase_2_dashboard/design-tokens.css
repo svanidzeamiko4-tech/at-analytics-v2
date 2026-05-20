@@ -1,0 +1,132 @@
+/* ===============================
+   AT ANALYTICS DESIGN SYSTEM
+   Dark / Light Theme Ready
+================================ */
+
+/* ---------- ROOT (shared brand & scale) ---------- */
+:root {
+  --color-primary: #00c2d1;
+  --color-primary-hover: #00a8b5;
+  --color-primary-soft: rgba(0, 194, 209, 0.12);
+  --color-primary-glow: rgba(0, 194, 209, 0.35);
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-accent: #7c3aed;
+
+  --font-family: "Inter", system-ui, sans-serif;
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-numbers: "Space Grotesk", "Inter", system-ui, sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --sidebar-width: 260px;
+  --transition-fast: 0.2s ease;
+  --transition-smooth: 0.3s ease;
+
+  /* Chart palette (Plotly-friendly) */
+  --chart-cyan: #00c2d1;
+  --chart-green: #22c55e;
+  --chart-red: #ef4444;
+  --chart-purple: #7c3aed;
+}
+
+/* ========================================
+   DARK THEME (default)
+======================================== */
+:root,
+[data-theme="dark"] {
+  --color-bg-main: #0b1120;
+  --color-bg-secondary: #111827;
+  --color-bg-card: #0f172a;
+  --color-bg-soft: #1f2937;
+
+  --color-border: #1f2937;
+
+  --color-text-primary: #e5e7eb;
+  --color-text-secondary: #9ca3af;
+
+  --color-glass: rgba(255, 255, 255, 0.05);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+
+  --color-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --color-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --color-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+  --color-gradient-main: radial-gradient(
+    ellipse at 20% 0%,
+    rgba(0, 194, 209, 0.08) 0%,
+    transparent 50%
+  ),
+  #0b1120;
+
+  --chart-paper: rgba(0, 0, 0, 0);
+  --chart-plot: rgba(0, 0, 0, 0);
+  --chart-grid: rgba(148, 163, 184, 0.12);
+  --chart-axis: #9ca3af;
+  --chart-tooltip-bg: #0f172a;
+  --chart-tooltip-border: #1f2937;
+}
+
+/* ========================================
+   LIGHT THEME
+======================================== */
+[data-theme="light"] {
+  --color-bg-main: #f4f7fb;
+  --color-bg-secondary: #ffffff;
+  --color-bg-card: #ffffff;
+  --color-bg-soft: #f1f5f9;
+
+  --color-border: #e5e7eb;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+
+  --color-glass: rgba(0, 0, 0, 0.04);
+  --color-glass-border: rgba(0, 0, 0, 0.06);
+
+  --color-primary-soft: rgba(0, 194, 209, 0.08);
+
+  --color-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --color-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --color-shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+  --color-gradient-main: linear-gradient(
+    to bottom,
+    #f8fafc 0%,
+    #f4f7fb 100%
+  );
+
+  --chart-paper: #f8fafc;
+  --chart-plot: #ffffff;
+  --chart-grid: rgba(148, 163, 184, 0.35);
+  --chart-axis: #64748b;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  :root,
+  [data-theme="dark"],
+  [data-theme="light"] {
+    --space-5: 16px;
+    --space-6: 24px;
+  }
+}

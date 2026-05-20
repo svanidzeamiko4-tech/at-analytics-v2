@@ -71,15 +71,24 @@ def main() -> None:
     from pages.distributor_view import render as render_distributor
     from pages.login import render as render_login
     from pages.manager_view import render as render_manager
+    from ui_shell import apply_theme_css, init_app_state
 
+    init_app_state()
     restore_session()
     if not is_authenticated():
+        apply_theme_css()
         render_login()
         return
 
+    apply_theme_css()
     user = get_current_user()
     role = get_role()
     with st.sidebar:
+        st.markdown(
+            '<div style="font-weight:600;color:var(--color-primary, #00c2d1);'
+            'letter-spacing:0.06em;margin-bottom:8px;">AT ANALYTICS</div>',
+            unsafe_allow_html=True,
+        )
         st.markdown(f"**{user.get('display_name', '')}** · `{user.get('role', '')}`")
         if st.button("გასვლა", key="auth_logout", use_container_width=True):
             st.session_state.pop("show_admin", None)

@@ -1,4 +1,4 @@
-"""AT Analytics — styled login page."""
+"""AT Analytics — split-screen login."""
 
 from __future__ import annotations
 
@@ -9,19 +9,19 @@ import streamlit as st
 
 from auth.auth import login
 from auth.users import init_auth_db
+from ui_shell import apply_theme_css, init_app_state
 from ui_theme import (
     BG,
     BORDER,
     CARD,
-    CARD_PADDING,
     FONT_BODY,
     FONT_HEADING,
+    GEO,
     GOOGLE_FONTS_URL,
     MUTED,
     PRIMARY,
     PRIMARY_DARK,
     PRIMARY_GLOW,
-    RADIUS,
     TEXT,
 )
 
@@ -38,101 +38,138 @@ def _logo_b64() -> str:
 def _login_css() -> str:
     return f"""
     @import url('{GOOGLE_FONTS_URL}');
-    .stApp {{ background: {BG} !important; font-family: {FONT_BODY}; }}
-    .login-container {{
-        max-width: 420px;
-        margin: 60px auto 0 auto;
-        padding: {CARD_PADDING};
-        background: {CARD};
-        border: 1px solid {BORDER};
-        border-radius: {RADIUS};
-        box-shadow: 0 0 32px {PRIMARY_GLOW};
+    [data-testid="stSidebar"] {{ display: none !important; }}
+    [data-theme="dark"] .stApp {{
+        background: {BG} !important;
+        font-family: {FONT_BODY};
     }}
-    .login-container:hover {{ border-color: {PRIMARY}; box-shadow: 0 0 40px {PRIMARY_GLOW}; }}
-    .login-logo {{ text-align: center; margin-bottom: 8px; }}
-    .login-logo img {{ width: 90px; filter: drop-shadow(0 0 16px {PRIMARY_GLOW}); }}
-    .login-title {{
-        text-align: center;
-        font-size: 1.8rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        color: {PRIMARY};
-        margin: 0 0 4px 0;
-        font-family: {FONT_HEADING};
+    [data-theme="light"] .stApp {{
+        background: linear-gradient(to bottom, #F8FAFC 0%, #F1F5F9 100%) !important;
+        font-family: {FONT_BODY};
     }}
-    .login-sub {{ text-align: center; color: {MUTED}; font-size: 0.8rem; margin-bottom: 28px; }}
-    .stTextInput > div > div > input {{
+    [data-theme="dark"] .login-hero-wrap {{
+        padding: 48px 32px;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: radial-gradient(ellipse at 30% 20%, {PRIMARY_GLOW}, transparent 55%), {BG};
+        border-radius: 16px;
+    }}
+    [data-theme="light"] .login-hero-wrap {{
+        padding: 48px 32px;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: radial-gradient(ellipse at 30% 20%, rgba(0,194,209,0.08), transparent 55%), #F8FAFC;
+        border-radius: 16px;
+    }}
+    .login-glass-wrap {{
+        padding: 32px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }}
+    [data-theme="dark"] .login-glass {{
+        width: 100%;
+        max-width: 400px;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.05);
+        background: rgba(17, 24, 39, 0.85);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+    }}
+    [data-theme="light"] .login-glass {{
+        width: 100%;
+        max-width: 400px;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }}
+    [data-theme="dark"] .stTextInput > div > div > input {{
         background: {CARD} !important;
         border: 1px solid {BORDER} !important;
-        border-radius: 12px !important;
         color: {TEXT} !important;
-        caret-color: {PRIMARY} !important;
-        padding: 12px 16px !important;
-        font-family: {FONT_BODY} !important;
+        min-height: 44px !important;
+        border-radius: 12px !important;
     }}
-    .stTextInput > div > div > input:focus {{
-        border-color: {PRIMARY} !important;
-        box-shadow: 0 0 0 2px {PRIMARY_GLOW} !important;
+    [data-theme="light"] .stTextInput > div > div > input {{
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #0f172a !important;
+        min-height: 44px !important;
+        border-radius: 12px !important;
     }}
-    .stTextInput label {{ color: {MUTED} !important; }}
-    div[data-testid="stForm"] > div:last-child button {{
-        width: 100%;
+    [data-theme="dark"] .stTextInput label {{ color: {MUTED} !important; }}
+    [data-theme="light"] .stTextInput label {{ color: #475569 !important; }}
+    div[data-testid="stForm"] button {{
+        min-height: 44px !important;
         background: {PRIMARY} !important;
         color: {BG} !important;
-        border: none !important;
         border-radius: 12px !important;
-        padding: 14px !important;
         font-weight: 600 !important;
-        font-family: {FONT_BODY} !important;
     }}
-    div[data-testid="stForm"] > div:last-child button:hover {{
-        background: {PRIMARY_DARK} !important;
-        box-shadow: 0 4px 20px {PRIMARY_GLOW} !important;
+    div[data-testid="stForm"] button:hover {{ background: {PRIMARY_DARK} !important; }}
+    @media (max-width: 768px) {{
+        .login-hero-wrap {{ min-height: auto; padding: 32px 16px; }}
     }}
     """
 
 
 def render() -> None:
     init_auth_db()
+    init_app_state()
+    apply_theme_css()
     st.markdown(f"<style>{_login_css()}</style>", unsafe_allow_html=True)
 
     b64 = _logo_b64()
-    logo_html = f'<img src="data:image/png;base64,{b64}" />' if b64 else "📊"
-    st.markdown(
-        f"""
-    <div class="login-container">
-        <div class="login-logo">{logo_html}</div>
-        <div class="login-title">AT ANALYTICS</div>
-        <div class="login-sub">ბიზნეს ანალიტიკისა და მარაგების მართვის სისტემა</div>
-    </div>
-    """,
-        unsafe_allow_html=True,
+    logo_html = (
+        f'<img src="data:image/png;base64,{b64}" alt="AT Analytics" '
+        f'style="width:120px;filter:drop-shadow(0 0 24px {PRIMARY_GLOW});" />'
+        if b64
+        else "📊"
     )
+    sub = GEO["report_sub"]
 
-    _, col, _ = st.columns([1, 2, 1])
-    with col:
+    col_hero, col_form = st.columns([1.1, 0.9])
+    with col_hero:
+        st.markdown(
+            f"""
+        <div class="login-hero-wrap">
+            <div style="margin-bottom:24px;">{logo_html}</div>
+            <h1 style="font-family:{FONT_HEADING};font-size:2rem;font-weight:700;
+                color:{PRIMARY};letter-spacing:-0.5px;margin:0 0 12px 0;">AT Analytics</h1>
+            <p style="color:{MUTED};font-size:1rem;max-width:360px;line-height:1.5;">{sub}</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+    with col_form:
+        st.markdown('<div class="login-glass-wrap"><div class="login-glass">', unsafe_allow_html=True)
+        st.markdown(
+            f'<h2 style="font-family:{FONT_HEADING};font-size:1.25rem;color:{TEXT};'
+            f'margin:0 0 16px 0;font-weight:600;">შესვლა</h2>',
+            unsafe_allow_html=True,
+        )
         with st.form("login_form", clear_on_submit=False):
             username = st.text_input(
                 "მომხმარებელი", placeholder="შეიყვანეთ მომხმარებელი"
             )
-            password = st.text_input(
-                "პაროლი", type="password", placeholder="••••••••"
-            )
+            password = st.text_input("პაროლი", type="password", placeholder="••••••••")
             submitted = st.form_submit_button("შესვლა →", use_container_width=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
-        if submitted:
-            if not username.strip() or not password:
-                st.error("შეიყვანეთ მომხმარებელი და პაროლი.")
-            elif login(username.strip(), password):
-                st.rerun()
-            else:
-                st.error("❌ მომხმარებელი ან პაროლი არასწორია")
+    if submitted:
+        if not username.strip() or not password:
+            st.error("შეიყვანეთ მომხმარებელი და პაროლი.")
+        elif login(username.strip(), password):
+            st.rerun()
+        else:
+            st.error("მომხმარებელი ან პაროლი არასწორია")
 
-    st.markdown(
-        """
-    <div style="text-align:center;color:#374151;font-size:0.72rem;margin-top:16px;">
-        AT Analytics © 2026 · Powered by Anthropic Claude
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    st.caption("AT Analytics © 2026")
