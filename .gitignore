@@ -20,3 +20,6 @@ split_invoices/
 # Auth DB
 auth/at_auth.db
 phase_2_dashboard/auth/at_auth.db
+
+# RS.ge credentials (local override)
+phase_2_dashboard/integrations/rs_ge/config.py

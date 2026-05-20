@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Body>
+    <GetWaybillsResponse xmlns="http://tempuri.org/">
+      <GetWaybillsResult>
+        <Waybills>
+          <Waybill>
+            <invoice_id>0968606515</invoice_id>
+            <date>2026-05-14T11:22:00</date>
+            <seller_name>შპს ამიკო ფუდ</seller_name>
+            <seller_address>თბილისი, საბურთალო, ვაჟა-ფშაველას 72</seller_address>
+            <buyer_name>შპს ნიკორა საქართველო</buyer_name>
+            <buyer_address>თბილისი, ვაჟა-ფშაველას გამზირი 68</buyer_address>
+            <buyer_barcode>#4400968606515</buyer_barcode>
+            <Products>
+              <Product>
+                <product_name>პური თეთრი 700გ</product_name>
+                <quantity>24</quantity>
+                <price>2.40</price>
+              </Product>
+              <Product>
+                <product_name>პური შავი 500გ</product_name>
+                <quantity>12</quantity>
+                <price>3.10</price>
+              </Product>
+            </Products>
+          </Waybill>
+          <Waybill>
+            <invoice_id>0968712044</invoice_id>
+            <date>2026-05-15T09:05:00</date>
+            <seller_name>შპს ამიკო ფუდ</seller_name>
+            <seller_address>თბილისი, საბურთალო, ვაჟა-ფშაველას 72</seller_address>
+            <buyer_name>შპს ორი ნაბიჯი</buyer_name>
+            <buyer_address>თბილისი, დიღომის ქუჩა 12</buyer_address>
+            <buyer_barcode>#4400968712044</buyer_barcode>
+            <Products>
+              <Product>
+                <product_name>ფხვიერ პური 400გ</product_name>
+                <quantity>18</quantity>
+                <price>2.85</price>
+              </Product>
+              <Product>
+                <product_name>ბაგეტი 350გ</product_name>
+                <quantity>30</quantity>
+                <price>1.95</price>
+              </Product>
+              <Product>
+                <product_name>კროასანი შოკოლადი 80გ</product_name>
+                <quantity>8</quantity>
+                <price>4.20</price>
+              </Product>
+            </Products>
+          </Waybill>
+          <Waybill>
+            <invoice_id>0968830192</invoice_id>
+            <date>2026-05-16T14:40:00</date>
+            <seller_name>შპს ამიკო ფუდ</seller_name>
+            <seller_address>თბილისი, საბურთალო, ვაჟა-ფშაველას 72</seller_address>
+            <buyer_name>შპს რითეილ ჯგუფი</buyer_name>
+            <buyer_address>თბილისი, დიდი ლილო, ერეკლე მეორის ქ. N16</buyer_address>
+            <buyer_barcode>#4400968830192</buyer_barcode>
+            <Products>
+              <Product>
+                <product_name>პური რუხი 600გ</product_name>
+                <quantity>20</quantity>
+                <price>3.25</price>
+              </Product>
+              <Product>
+                <product_name>ლავაში (5 ცალი)</product_name>
+                <quantity>10</quantity>
+                <price>5.50</price>
+              </Product>
+            </Products>
+          </Waybill>
+        </Waybills>
+      </GetWaybillsResult>
+    </GetWaybillsResponse>
+  </soap:Body>
+</soap:Envelope>
