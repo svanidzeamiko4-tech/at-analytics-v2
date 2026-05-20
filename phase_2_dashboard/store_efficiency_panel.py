@@ -15,20 +15,22 @@ from charts.store_charts import return_rate_chart
 from data_loader import returns_vs_sales_by_store
 
 _PLOTLY_CFG: dict = {"displayModeBar": False}
-_FONT = "'BPG Nino Mtavruli', 'Segoe UI', 'Inter', system-ui, sans-serif"
-_CARD_MUTED = "#94a3b8"
-_TEXT = "#f1f5f9"
-_BRAND_MINT = "#11CAA0"
-_TABLE_BG = "#0E1117"
-_TABLE_ROW_HOVER = "#1e293b"
-_TABLE_TEXT = "#e2e8f0"
+from ui_theme import BG, BORDER, CARD_HOVER, FONT_BODY, MUTED, PRIMARY, SUCCESS, TEXT
+
+_FONT = FONT_BODY
+_CARD_MUTED = MUTED
+_TEXT = TEXT
+_BRAND_MINT = SUCCESS
+_TABLE_BG = BG
+_TABLE_ROW_HOVER = CARD_HOVER
+_TABLE_TEXT = TEXT
 
 _STORE_DETAIL_UI_CSS = f"""
 <style>
 /* დეტალური ცხრილი — expander (dark + brand border) */
 div[data-testid="stExpander"] > div > details {{
   background-color: {_TABLE_BG} !important;
-  border: 1px solid rgba(17, 202, 160, 0.55) !important;
+  border: 1px solid {PRIMARY} !important;
   border-radius: 12px !important;
   overflow: hidden;
 }}
@@ -106,7 +108,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderContent"] > div {{
 }}
 .store-detail-table-frame table#T_store_dm thead th {{
   background-color: {_BRAND_MINT} !important;
-  color: #0e1117 !important;
+  color: {BG} !important;
   font-family: {_FONT} !important;
 }}
 .store-detail-table-frame table#T_store_dm tbody td {{
@@ -160,7 +162,7 @@ def _style_store_metrics_table(df: pd.DataFrame) -> pd.io.formats.style.Styler:
         "selector": "thead th",
         "props": [
             ("background-color", _BRAND_MINT),
-            ("color", "#0e1117"),
+            ("color", BG),
             ("font-weight", "600"),
             ("font-family", _FONT),
             ("border", "1px solid rgba(14, 17, 23, 0.35)"),

@@ -5,24 +5,33 @@ from __future__ import annotations
 import pandas as pd
 import plotly.graph_objects as go
 
-BRAND_CYAN = "#00B4D8"
-BRAND_MINT = "#11CAA0"
-TEXT = "#f0f2f6"
-MUTED = "#9aa0ab"
-BG = "#0e1117"
-FONT = "'BPG Nino Mtavruli','Segoe UI',system-ui,sans-serif"
-GRID = "rgba(255,255,255,0.05)"
+from ui_theme import (
+    ACCENT,
+    BG,
+    BORDER,
+    FONT_BODY,
+    MUTED,
+    PRIMARY,
+    PRIMARY_DARK,
+    SUCCESS,
+    TEXT,
+)
+
+BRAND_CYAN = PRIMARY
+BRAND_MINT = SUCCESS
+FONT = FONT_BODY
+GRID = BORDER
 COLORS = [
-    BRAND_CYAN,
-    BRAND_MINT,
-    "#0dc4a8",
-    "#0ab8c4",
-    "#1dd3a8",
-    "#08c8dc",
-    "#14e0cc",
-    "#00a8cc",
-    "#0fd4b4",
-    "#05c0d0",
+    PRIMARY,
+    SUCCESS,
+    PRIMARY_DARK,
+    ACCENT,
+    "#0d9488",
+    "#059669",
+    "#6366f1",
+    "#14b8a6",
+    "#10b981",
+    "#7c3aed",
 ]
 
 

@@ -9,6 +9,21 @@ import streamlit as st
 
 from auth.auth import login
 from auth.users import init_auth_db
+from ui_theme import (
+    BG,
+    BORDER,
+    CARD,
+    CARD_PADDING,
+    FONT_BODY,
+    FONT_HEADING,
+    GOOGLE_FONTS_URL,
+    MUTED,
+    PRIMARY,
+    PRIMARY_DARK,
+    PRIMARY_GLOW,
+    RADIUS,
+    TEXT,
+)
 
 LOGO_PATH = Path(__file__).resolve().parent.parent / "assets" / "at_analytics_logo.png"
 
@@ -20,94 +35,66 @@ def _logo_b64() -> str:
     return ""
 
 
-def render() -> None:
-    init_auth_db()
-    st.markdown(
-        """
-    <style>
-    .stApp { background: linear-gradient(135deg, #0a0e1a 0%, #0e1117 50%, #0a1628 100%) !important; }
-
-    .login-container {
+def _login_css() -> str:
+    return f"""
+    @import url('{GOOGLE_FONTS_URL}');
+    .stApp {{ background: {BG} !important; font-family: {FONT_BODY}; }}
+    .login-container {{
         max-width: 420px;
         margin: 60px auto 0 auto;
-        padding: 40px;
-        background: rgba(26,28,36,0.95);
-        border: 1px solid rgba(34,211,238,0.2);
-        border-radius: 20px;
-        box-shadow: 0 0 60px rgba(34,211,238,0.08), 0 20px 60px rgba(0,0,0,0.5);
-    }
-    .login-logo {
-        text-align: center;
-        margin-bottom: 8px;
-    }
-    .login-logo img {
-        width: 90px;
-        filter: drop-shadow(0 0 20px rgba(34,211,238,0.4));
-    }
-    .login-title {
+        padding: {CARD_PADDING};
+        background: {CARD};
+        border: 1px solid {BORDER};
+        border-radius: {RADIUS};
+        box-shadow: 0 0 32px {PRIMARY_GLOW};
+    }}
+    .login-container:hover {{ border-color: {PRIMARY}; box-shadow: 0 0 40px {PRIMARY_GLOW}; }}
+    .login-logo {{ text-align: center; margin-bottom: 8px; }}
+    .login-logo img {{ width: 90px; filter: drop-shadow(0 0 16px {PRIMARY_GLOW}); }}
+    .login-title {{
         text-align: center;
         font-size: 1.8rem;
         font-weight: 700;
-        letter-spacing: 0.1em;
-        color: #22d3ee;
+        letter-spacing: 0.08em;
+        color: {PRIMARY};
         margin: 0 0 4px 0;
-        font-family: 'Segoe UI', system-ui, sans-serif;
-    }
-    .login-sub {
-        text-align: center;
-        color: #6b7280;
-        font-size: 0.8rem;
-        margin-bottom: 28px;
-    }
-    .stTextInput > div > div > input {
-        background: #1a1c24 !important;
-        border: 1px solid rgba(34,211,238,0.3) !important;
-        border-radius: 10px !important;
-        color: #f0f2f6 !important;
-        caret-color: #22d3ee !important;
+        font-family: {FONT_HEADING};
+    }}
+    .login-sub {{ text-align: center; color: {MUTED}; font-size: 0.8rem; margin-bottom: 28px; }}
+    .stTextInput > div > div > input {{
+        background: {CARD} !important;
+        border: 1px solid {BORDER} !important;
+        border-radius: 12px !important;
+        color: {TEXT} !important;
+        caret-color: {PRIMARY} !important;
         padding: 12px 16px !important;
-    }
-    .stTextInput > div > div > input::placeholder {
-        color: #4b5563 !important;
-    }
-    .stTextInput > div > div > input:focus {
-        border-color: rgba(34,211,238,0.6) !important;
-        box-shadow: 0 0 0 2px rgba(34,211,238,0.15) !important;
-    }
-    .stTextInput label { color: #9aa0ab !important; font-size: 0.85rem !important; }
-    .stTextInput > div > div > button {
-        background: #22d3ee !important;
-        border: none !important;
-        border-radius: 0 10px 10px 0 !important;
-    }
-
-    div[data-testid="stForm"] > div:last-child button {
+        font-family: {FONT_BODY} !important;
+    }}
+    .stTextInput > div > div > input:focus {{
+        border-color: {PRIMARY} !important;
+        box-shadow: 0 0 0 2px {PRIMARY_GLOW} !important;
+    }}
+    .stTextInput label {{ color: {MUTED} !important; }}
+    div[data-testid="stForm"] > div:last-child button {{
         width: 100%;
-        background: linear-gradient(135deg, #0891b2, #0e7490) !important;
-        color: white !important;
+        background: {PRIMARY} !important;
+        color: {BG} !important;
         border: none !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         padding: 14px !important;
-        font-size: 1rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.05em !important;
-        cursor: pointer !important;
-        transition: all 0.2s !important;
-    }
-    div[data-testid="stForm"] > div:last-child button:hover {
-        background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
-        box-shadow: 0 4px 20px rgba(34,211,238,0.3) !important;
-    }
-    .login-footer {
-        text-align: center;
-        color: #374151;
-        font-size: 0.72rem;
-        margin-top: 24px;
-    }
-    </style>
-    """,
-        unsafe_allow_html=True,
-    )
+        font-family: {FONT_BODY} !important;
+    }}
+    div[data-testid="stForm"] > div:last-child button:hover {{
+        background: {PRIMARY_DARK} !important;
+        box-shadow: 0 4px 20px {PRIMARY_GLOW} !important;
+    }}
+    """
+
+
+def render() -> None:
+    init_auth_db()
+    st.markdown(f"<style>{_login_css()}</style>", unsafe_allow_html=True)
 
     b64 = _logo_b64()
     logo_html = f'<img src="data:image/png;base64,{b64}" />' if b64 else "📊"

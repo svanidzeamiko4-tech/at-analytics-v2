@@ -40,7 +40,18 @@ from data_loader import (
 )
 from overview_kpis import render_overview_kpi_strip
 from store_efficiency_panel import render_store_efficiency_section
-from ui_theme import EMERALD, GEO, NEON_BLUE, PLOTLY_STREAMLIT_CONFIG
+from ui_theme import (
+    BORDER,
+    CARD,
+    EMERALD,
+    GEO,
+    MUTED,
+    NEON_BLUE,
+    PLOTLY_STREAMLIT_CONFIG,
+    PRIMARY,
+    RADIUS,
+    SUCCESS,
+)
 
 
 def _filter_frames(
@@ -175,20 +186,20 @@ def render_dashboard(
             st.sidebar.markdown(
                 f"""
             <div style="
-                background: linear-gradient(145deg, #1a1c24, #14161f);
-                border: 1px solid rgba(34,211,238,0.2);
-                border-radius: 10px;
-                padding: 10px 12px;
-                margin-bottom: 8px;
+                background: {CARD};
+                border: 1px solid {BORDER};
+                border-radius: {RADIUS};
+                padding: 14px 16px;
+                margin-bottom: 10px;
             ">
-                <div style="color:#22d3ee;font-size:0.68rem;
+                <div style="color:{PRIMARY};font-size:0.68rem;
                     text-transform:uppercase;letter-spacing:0.08em;
                     margin-bottom:4px;">შევსება · 1–2 დღე</div>
-                <div style="color:#f0f2f6;font-size:0.88rem;
+                <div style="color:#E5E7EB;font-size:0.88rem;
                     font-weight:600;margin-bottom:6px;">{display}</div>
-                <div style="color:#34d399;font-size:1.1rem;
+                <div style="color:{SUCCESS};font-size:1.1rem;
                     font-weight:700;">{row['recommended_restock_gel']:,.2f} GEL</div>
-                <div style="color:#6b7280;font-size:0.72rem;margin-top:4px;">
+                <div style="color:{MUTED};font-size:0.72rem;margin-top:4px;">
                     საშ: {row['avg_daily_revenue_gel']:,.2f} ·
                     სიზ: {int(row['confidence_pct'])}%
                 </div>

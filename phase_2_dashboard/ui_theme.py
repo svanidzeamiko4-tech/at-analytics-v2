@@ -1,4 +1,4 @@
-"""Shared UI tokens and Georgian copy (no app imports)."""
+"""Shared UI tokens — Modern SaaS Distribution Analytics design system."""
 
 from __future__ import annotations
 
@@ -9,20 +9,49 @@ import streamlit as st
 
 _LOGO_PATH = Path(__file__).resolve().parent / "assets" / "at_analytics_logo.png"
 
-BG = "#0e1117"
-CARD = "#1a1c24"
-BORDER = "#2d303a"
-TEXT = "#f0f2f6"
-MUTED = "#9aa0ab"
-PAGE_SUB = "#6b7280"
-NEON_BLUE = "#22d3ee"
-NEON_BLUE_DIM = "rgba(34, 211, 238, 0.14)"
-HEADER_NEON_CYAN = "#00FFFF"
-EMERALD = "#34d399"
-EMERALD_DIM = "rgba(52, 211, 153, 0.14)"
-RED_RET = "#f87171"
-GRID = "#2a2d38"
-FONT_FAMILY = "'BPG Nino Mtavruli', 'Segoe UI', 'Inter', system-ui, sans-serif"
+# --- Design system palette ---
+PRIMARY = "#00D1C7"
+PRIMARY_DARK = "#00A8A0"
+ACCENT = "#7C3AED"
+BG = "#0B1220"
+CARD = "#111827"
+CARD_HOVER = "#1F2937"
+BORDER = "#1E293B"
+TEXT = "#E5E7EB"
+MUTED = "#9CA3AF"
+SUCCESS = "#10B981"
+WARNING = "#F59E0B"
+DANGER = "#EF4444"
+
+PRIMARY_GLOW = "rgba(0, 209, 199, 0.35)"
+PRIMARY_DIM = "rgba(0, 209, 199, 0.12)"
+ACCENT_DIM = "rgba(124, 58, 237, 0.14)"
+SUCCESS_DIM = "rgba(16, 185, 129, 0.14)"
+
+RADIUS = "16px"
+CARD_PADDING = "24px"
+
+FONT_HEADING = "'Sora', 'Inter', system-ui, sans-serif"
+FONT_BODY = "'Inter', system-ui, sans-serif"
+FONT_NUMBERS = "'Space Grotesk', 'Inter', system-ui, sans-serif"
+FONT_FAMILY = FONT_BODY
+
+# Legacy aliases (charts / older imports)
+NEON_BLUE = PRIMARY
+NEON_BLUE_DIM = PRIMARY_DIM
+HEADER_NEON_CYAN = PRIMARY
+EMERALD = SUCCESS
+EMERALD_DIM = SUCCESS_DIM
+RED_RET = DANGER
+PAGE_SUB = MUTED
+GRID = BORDER
+
+GOOGLE_FONTS_URL = (
+    "https://fonts.googleapis.com/css2?"
+    "family=Inter:wght@400;500;600;700&"
+    "family=Sora:wght@600;700&"
+    "family=Space+Grotesk:wght@500;600;700&display=swap"
+)
 
 GEO = {
     "report_sub": "ბიზნეს ანალიტიკისა და მარაგების მართვის სისტემა",
@@ -69,6 +98,7 @@ GEO = {
     "delta_returns_vs_sales": "დაბრუნება / გაყიდვა",
 }
 
+
 def _logo_b64() -> str:
     if not _LOGO_PATH.is_file():
         return ""
@@ -96,7 +126,7 @@ def apply_watermark(b64_logo: str, opacity: float = 0.04) -> None:
         opacity: {opacity};
         pointer-events: none;
         z-index: 0;
-        filter: grayscale(30%);
+        filter: grayscale(40%) brightness(1.1);
     }}
     </style>
     <div class="watermark-bg"></div>

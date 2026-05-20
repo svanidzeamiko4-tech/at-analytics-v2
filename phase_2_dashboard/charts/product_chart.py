@@ -7,10 +7,12 @@ import re
 import pandas as pd
 import plotly.graph_objects as go
 
-TEXT = "#f0f2f6"
-MUTED = "#9aa0ab"
-FONT = "'BPG Nino Mtavruli','Segoe UI',system-ui,sans-serif"
-GRID = "rgba(255,255,255,0.05)"
+from ui_theme import ACCENT, BORDER, FONT_BODY, MUTED, PRIMARY, TEXT
+
+FONT = FONT_BODY
+GRID = BORDER
+CHART_PRIMARY = PRIMARY
+CHART_ACCENT = ACCENT
 
 
 def _clean_product_name(name: str) -> str:

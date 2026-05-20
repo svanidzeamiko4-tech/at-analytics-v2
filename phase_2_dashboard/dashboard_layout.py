@@ -11,16 +11,29 @@ import streamlit as st
 
 from data_loader import preset_range
 from ui_theme import (
+    ACCENT,
     BG,
     BORDER,
     CARD,
+    CARD_HOVER,
+    CARD_PADDING,
+    DANGER,
     EMERALD,
+    FONT_BODY,
     FONT_FAMILY,
+    FONT_HEADING,
+    FONT_NUMBERS,
     GEO,
+    GOOGLE_FONTS_URL,
     HEADER_NEON_CYAN,
     MUTED,
     NEON_BLUE,
     PAGE_SUB,
+    PRIMARY,
+    PRIMARY_DARK,
+    PRIMARY_GLOW,
+    RADIUS,
+    SUCCESS,
     TEXT,
 )
 
@@ -31,34 +44,99 @@ def apply_css() -> None:
     st.markdown(
         f"""
         <style>
-        .stApp {{ background-color: {BG}; color: {TEXT}; }}
+        @import url('{GOOGLE_FONTS_URL}');
+
+        .stApp {{
+            background-color: {BG};
+            color: {TEXT};
+            font-family: {FONT_BODY};
+        }}
         [data-testid="stSidebar"] {{
             background-color: {CARD};
             border-right: 1px solid {BORDER};
         }}
-        [data-testid="stSidebar"] .stMarkdown h3 {{ color: {TEXT}; font-weight: 600; }}
+        [data-testid="stSidebar"] .stMarkdown h3 {{
+            color: {TEXT};
+            font-family: {FONT_HEADING};
+            font-weight: 600;
+        }}
+        h1, h2, h3, h4 {{
+            font-family: {FONT_HEADING} !important;
+            color: {TEXT} !important;
+        }}
+        p, label, .stMarkdown {{
+            font-family: {FONT_BODY};
+        }}
+        [data-testid="stMetricValue"], .dash-hero-num {{
+            font-family: {FONT_NUMBERS} !important;
+        }}
+
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {{
+            background-color: {CARD} !important;
+            border: 1px solid {BORDER} !important;
+            border-radius: {RADIUS} !important;
+            padding: {CARD_PADDING} !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }}
+        div[data-testid="stVerticalBlockBorderWrapper"] > div:hover {{
+            border-color: {PRIMARY} !important;
+            box-shadow: 0 0 0 1px {PRIMARY_GLOW};
+        }}
+
         .dash-card {{
             background-color: {CARD};
             border: 1px solid {BORDER};
-            border-radius: 14px;
-            padding: 18px 20px 16px 20px;
-            margin-bottom: 14px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+            border-radius: {RADIUS};
+            padding: {CARD_PADDING};
+            margin-bottom: 16px;
         }}
-        .dash-card h3 {{ margin: 0 0 4px 0; font-size: 0.78rem; color: {MUTED}; text-transform: uppercase; letter-spacing: 0.08em; }}
-        .dash-hero-num {{ font-size: 1.85rem; font-weight: 700; letter-spacing: -0.02em; }}
+        .dash-card h3 {{
+            margin: 0 0 4px 0;
+            font-size: 0.78rem;
+            color: {MUTED};
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-family: {FONT_HEADING};
+        }}
+        .dash-hero-num {{
+            font-family: {FONT_NUMBERS};
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }}
         .dash-hero-sub {{ color: {MUTED}; font-size: 0.88rem; margin-top: 4px; }}
         .magic-card {{
-            background: linear-gradient(145deg, {CARD} 0%, #14161f 100%);
-            border: 1px solid rgba(34, 211, 238, 0.35);
-            border-radius: 14px;
-            padding: 16px 18px;
+            background: {CARD};
+            border: 1px solid {BORDER};
+            border-radius: {RADIUS};
+            padding: 18px 20px;
             margin-bottom: 12px;
-            box-shadow: 0 0 0 1px rgba(34,211,238,0.06), 0 8px 32px rgba(0,0,0,0.45);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }}
-        .magic-card .title {{ color: {NEON_BLUE}; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }}
-        .magic-card .store {{ font-size: 1.05rem; font-weight: 600; margin: 8px 0 6px 0; color: {TEXT}; }}
-        .magic-card .amt {{ font-size: 1.35rem; font-weight: 700; color: {EMERALD}; }}
+        .magic-card:hover {{
+            border-color: {PRIMARY};
+            box-shadow: 0 0 20px {PRIMARY_GLOW};
+        }}
+        .magic-card .title {{
+            color: {PRIMARY};
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            font-family: {FONT_HEADING};
+        }}
+        .magic-card .store {{
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 8px 0 6px 0;
+            color: {TEXT};
+        }}
+        .magic-card .amt {{
+            font-family: {FONT_NUMBERS};
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: {SUCCESS};
+        }}
         .magic-card .conf {{ color: {MUTED}; font-size: 0.82rem; margin-top: 8px; }}
         h1 {{ color: {TEXT} !important; font-weight: 700 !important; letter-spacing: -0.03em; }}
         .page-sub {{
@@ -106,16 +184,16 @@ def apply_css() -> None:
             padding: 0.1rem 0 0.35rem 0;
         }}
         .brand-title {{
-            font-family: {FONT_FAMILY};
+            font-family: {FONT_HEADING};
             font-size: clamp(1.5rem, 2.6vw, 1.95rem);
             font-weight: 700;
-            letter-spacing: 0.07em;
-            color: {HEADER_NEON_CYAN};
+            letter-spacing: 0.06em;
+            color: {PRIMARY};
             line-height: 1.12;
             margin: 0;
         }}
         .brand-sub {{
-            font-family: {FONT_FAMILY};
+            font-family: {FONT_BODY};
             font-size: 0.8rem;
             font-weight: 400;
             color: {PAGE_SUB};
@@ -134,28 +212,62 @@ def apply_css() -> None:
             margin: 0 0 0.42rem 0;
         }}
         .ai-main-banner {{
-            font-family: {FONT_FAMILY};
-            background: linear-gradient(135deg, #152642 0%, #1a2d4a 55%, #162238 100%);
-            border: 1px solid rgba(0, 255, 255, 0.22);
-            border-radius: 12px;
-            padding: 14px 18px;
-            color: {HEADER_NEON_CYAN};
+            font-family: {FONT_BODY};
+            background: {CARD};
+            border: 1px solid {BORDER};
+            border-radius: {RADIUS};
+            padding: 18px 20px;
+            color: {TEXT};
             font-size: 0.94rem;
             line-height: 1.48;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
         }}
+        .ai-main-banner strong {{ color: {PRIMARY}; }}
         [data-testid="stMetric"] {{
             background-color: {CARD};
             border: 1px solid {BORDER};
-            border-radius: 12px;
-            padding: 14px 16px;
+            border-radius: {RADIUS};
+            padding: 18px 20px;
             min-height: 104px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }}
-        [data-testid="stMetric"] label {{ color: {MUTED} !important; }}
-        [data-testid="stMetric"] [data-testid="stMetricValue"] {{ color: {TEXT} !important; }}
-        div[data-testid="stMetricDelta"] {{ font-size: 0.82rem; }}
-        div[data-testid="stVerticalBlockBorderWrapper"] > div {{
-            border-color: {BORDER} !important;
+        [data-testid="stMetric"]:hover {{
+            border-color: {PRIMARY};
+            box-shadow: 0 0 16px {PRIMARY_GLOW};
+        }}
+        [data-testid="stMetric"] label {{ color: {MUTED} !important; font-family: {FONT_BODY} !important; }}
+        [data-testid="stMetric"] [data-testid="stMetricValue"] {{
+            color: {TEXT} !important;
+            font-family: {FONT_NUMBERS} !important;
+        }}
+        div[data-testid="stMetricDelta"] {{ font-size: 0.82rem; font-family: {FONT_NUMBERS}; }}
+
+        .stButton > button {{
+            border-radius: 12px !important;
+            font-family: {FONT_BODY} !important;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }}
+        .stButton > button:hover {{
+            border-color: {PRIMARY} !important;
+            box-shadow: 0 0 14px {PRIMARY_GLOW} !important;
+        }}
+        .stButton > button[kind="primary"] {{
+            background: {PRIMARY} !important;
+            color: {BG} !important;
+            border: none !important;
+        }}
+        .stButton > button[kind="primary"]:hover {{
+            background: {PRIMARY_DARK} !important;
+            box-shadow: 0 0 18px {PRIMARY_GLOW} !important;
+        }}
+        .stTabs [data-baseweb="tab-list"] {{
+            background: {CARD};
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid {BORDER};
+        }}
+        .stTabs [aria-selected="true"] {{
+            color: {PRIMARY} !important;
+            border-bottom-color: {PRIMARY} !important;
         }}
         .st-key-fab_chat_toggle {{
             position: fixed !important;
@@ -173,23 +285,23 @@ def apply_css() -> None:
             height: 60px !important;
             min-height: 60px !important;
             border-radius: 50% !important;
-            background: linear-gradient(135deg, #22d3ee, #11CAA0) !important;
+            background: linear-gradient(135deg, {PRIMARY}, {ACCENT}) !important;
             border: none !important;
             cursor: pointer;
             font-size: 28px !important;
             line-height: 1 !important;
             padding: 0 !important;
-            color: #0e1117 !important;
-            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+            color: {BG} !important;
+            box-shadow: 0 4px 20px {PRIMARY_GLOW};
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }}
         .st-key-fab_chat_toggle button:hover,
         .floating-chat-btn:hover {{
-            transform: scale(1.1);
-            box-shadow: 0 6px 28px rgba(34, 211, 238, 0.6);
+            transform: scale(1.08);
+            box-shadow: 0 6px 28px {PRIMARY_GLOW};
         }}
         .st-key-fab_chat_toggle button:focus-visible {{
-            outline: 2px solid {NEON_BLUE};
+            outline: 2px solid {PRIMARY};
             outline-offset: 3px;
         }}
         .st-key-ai_chat_panel {{
@@ -205,11 +317,15 @@ def apply_css() -> None:
             animation: aiChatPanelIn 0.22s ease-out;
         }}
         .st-key-ai_chat_panel > div {{
-            background: linear-gradient(145deg, {CARD} 0%, #14161f 100%);
-            border: 1px solid rgba(34, 211, 238, 0.35);
-            border-radius: 16px;
-            padding: 12px 16px 16px;
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+            background: {CARD};
+            border: 1px solid {BORDER};
+            border-radius: {RADIUS};
+            padding: {CARD_PADDING};
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+        }}
+        .st-key-ai_chat_panel > div:hover {{
+            border-color: {PRIMARY};
+            box-shadow: 0 0 24px {PRIMARY_GLOW};
         }}
         .st-key-fab_chat_close button {{
             width: 2rem !important;

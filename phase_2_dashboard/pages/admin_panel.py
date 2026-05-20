@@ -20,7 +20,37 @@ from auth.users import (
     remove_store,
 )
 from data_loader import resolve_db_path
-from ui_theme import _logo_b64, apply_watermark
+from ui_theme import (
+    BG,
+    BORDER,
+    CARD,
+    FONT_BODY,
+    GOOGLE_FONTS_URL,
+    MUTED,
+    PRIMARY,
+    RADIUS,
+    TEXT,
+    _logo_b64,
+    apply_watermark,
+)
+
+
+def _admin_css() -> str:
+    return f"""
+    @import url('{GOOGLE_FONTS_URL}');
+    .stApp {{ background-color: {BG} !important; color: {TEXT} !important; font-family: {FONT_BODY}; }}
+    [data-testid="stSidebar"] {{ background-color: {CARD} !important; border-right: 1px solid {BORDER}; }}
+    .stTabs [data-baseweb="tab-list"] {{ background-color: {CARD} !important; border: 1px solid {BORDER}; border-radius: 12px; }}
+    .stTabs [aria-selected="true"] {{ color: {PRIMARY} !important; }}
+    .stExpander {{ background-color: {CARD} !important; border: 1px solid {BORDER} !important; border-radius: {RADIUS} !important; }}
+    .stTextInput > div > div > input, .stSelectbox > div > div {{
+        background: {CARD} !important;
+        color: {TEXT} !important;
+        border: 1px solid {BORDER} !important;
+        border-radius: 12px !important;
+    }}
+    h1, h2, h3, p, label {{ color: {TEXT} !important; }}
+    """
 
 
 def _get_all_stores() -> list[tuple[int, str, str]]:
@@ -47,50 +77,7 @@ def render() -> None:
         st.error("ადმინ პანელზე წვდომა მხოლოდ მენეჯერს აქვს.")
         return
 
-    st.markdown(
-        """
-    <style>
-    .stApp {
-        background-color: #0e1117 !important;
-        color: #f0f2f6 !important;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #1a1c24 !important;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: #1a1c24 !important;
-    }
-    .stTabs [data-baseweb="tab"] {
-        color: #9aa0ab !important;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #22d3ee !important;
-    }
-    .stExpander {
-        background-color: #1a1c24 !important;
-        border: 1px solid #2d303a !important;
-        border-radius: 10px !important;
-    }
-    .stTextInput > div > div > input {
-        background: rgba(255,255,255,0.05) !important;
-        color: #f0f2f6 !important;
-        border: 1px solid rgba(34,211,238,0.2) !important;
-        border-radius: 8px !important;
-    }
-    .stSelectbox > div > div {
-        background: rgba(255,255,255,0.05) !important;
-        color: #f0f2f6 !important;
-    }
-    .stButton > button {
-        border-radius: 8px !important;
-    }
-    h1, h2, h3, p, label {
-        color: #f0f2f6 !important;
-    }
-    </style>
-    """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"<style>{_admin_css()}</style>", unsafe_allow_html=True)
     apply_watermark(_logo_b64(), opacity=0.04)
 
     st.markdown("## ⚙️ ადმინისტრირება")

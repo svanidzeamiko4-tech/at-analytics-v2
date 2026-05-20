@@ -13,7 +13,26 @@ import pandas as pd
 import streamlit as st
 
 from data_loader import resolve_db_path
-from ui_theme import _logo_b64, apply_watermark
+from ui_theme import (
+    ACCENT,
+    BG,
+    BORDER,
+    CARD,
+    CARD_PADDING,
+    DANGER,
+    FONT_BODY,
+    FONT_HEADING,
+    FONT_NUMBERS,
+    GOOGLE_FONTS_URL,
+    MUTED,
+    PRIMARY,
+    RADIUS,
+    SUCCESS,
+    TEXT,
+    WARNING,
+    _logo_b64,
+    apply_watermark,
+)
 
 BREAD_SHELF_LIFE = {
     "default": 6,
@@ -153,10 +172,10 @@ def _calc_product_recommendations(
 
 def _confidence_color(pct: int) -> str:
     if pct >= 80:
-        return "#34d399"
+        return SUCCESS
     if pct >= 65:
-        return "#fbbf24"
-    return "#f87171"
+        return WARNING
+    return DANGER
 
 
 def _confidence_label(pct: int) -> str:
@@ -201,16 +220,18 @@ def _load_stores(allowed_store_ids: list[int] | None) -> list[tuple[int, str, st
 def render(allowed_store_ids: list[int] | None = None) -> None:
     """Render order planning page."""
     st.markdown(
-        """
+        f"""
     <style>
-    .stApp { background-color: #0e1117 !important; color: #f0f2f6 !important; }
-    .order-header {
-        background: linear-gradient(135deg, #0e1117, #1a1c24);
-        border: 1px solid rgba(34,211,238,0.2);
-        border-radius: 16px;
-        padding: 20px 24px;
+    @import url('{GOOGLE_FONTS_URL}');
+    .stApp {{ background-color: {BG} !important; color: {TEXT} !important; font-family: {FONT_BODY}; }}
+    .order-header {{
+        background: {CARD};
+        border: 1px solid {BORDER};
+        border-radius: {RADIUS};
+        padding: {CARD_PADDING};
         margin-bottom: 20px;
-    }
+    }}
+    .order-header:hover {{ border-color: {PRIMARY}; box-shadow: 0 0 24px rgba(0, 209, 199, 0.25); }}
     </style>
     """,
         unsafe_allow_html=True,
@@ -227,15 +248,15 @@ def render(allowed_store_ids: list[int] | None = None) -> None:
     st.markdown(
         f"""
     <div class="order-header">
-        <div style="color:#22d3ee;font-size:0.75rem;
-            text-transform:uppercase;letter-spacing:0.1em;">
+        <div style="color:{PRIMARY};font-size:0.75rem;
+            text-transform:uppercase;letter-spacing:0.1em;font-family:{FONT_HEADING};">
             📋 შეკვეთის დაგეგმვა
         </div>
         <div style="font-size:1.6rem;font-weight:700;
-            color:#f0f2f6;margin:6px 0;">
+            color:{TEXT};margin:6px 0;font-family:{FONT_HEADING};">
             {tomorrow.strftime('%d %B %Y')} — ხვალინდელი შეკვეთა
         </div>
-        <div style="color:#6b7280;font-size:0.85rem;">
+        <div style="color:{MUTED};font-size:0.85rem;">
             ბოლო 60 დღის გაყიდვების ანალიზი · {html.escape(scope_note)}
         </div>
     </div>
@@ -307,7 +328,8 @@ def render(allowed_store_ids: list[int] | None = None) -> None:
                     st.markdown(
                         f"<div style='text-align:center;"
                         f"font-size:1.4rem;font-weight:700;"
-                        f"color:#22d3ee;'>{int(row['recommended_qty'])}</div>"
+                        f"color:{PRIMARY};font-family:{FONT_NUMBERS};'>"
+                        f"{int(row['recommended_qty'])}</div>"
                         f"<div style='text-align:center;color:#6b7280;"
                         f"font-size:0.7rem;'>ცალი</div>",
                         unsafe_allow_html=True,
@@ -333,8 +355,8 @@ def render(allowed_store_ids: list[int] | None = None) -> None:
                 f"border:1px solid rgba(34,211,238,0.2);"
                 f"border-radius:8px;text-align:center;'>"
                 f"<span style='color:#9aa0ab;font-size:0.8rem;'>სულ შესატანი: </span>"
-                f"<span style='color:#22d3ee;font-size:1.2rem;"
-                f"font-weight:700;'>{total_items} ცალი</span>"
+                f"<span style='color:{PRIMARY};font-size:1.2rem;"
+                f"font-weight:700;font-family:{FONT_NUMBERS};'>{total_items} ცალი</span>"
                 f"</div>",
                 unsafe_allow_html=True,
             )

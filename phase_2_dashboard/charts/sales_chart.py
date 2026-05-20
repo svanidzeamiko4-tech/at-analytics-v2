@@ -5,14 +5,14 @@ from __future__ import annotations
 import pandas as pd
 import plotly.graph_objects as go
 
-BRAND_CYAN = "#00B4D8"
-BRAND_MINT = "#11CAA0"
-BRAND_CYAN_DIM = "rgba(0,180,216,0.15)"
-BRAND_MINT_DIM = "rgba(17,202,160,0.15)"
-TEXT = "#f0f2f6"
-MUTED = "#9aa0ab"
-FONT = "'BPG Nino Mtavruli','Segoe UI',system-ui,sans-serif"
-GRID = "rgba(255,255,255,0.05)"
+from ui_theme import BORDER, FONT_BODY, MUTED, PRIMARY, PRIMARY_DIM, SUCCESS, SUCCESS_DIM, TEXT
+
+BRAND_CYAN = PRIMARY
+BRAND_MINT = SUCCESS
+BRAND_CYAN_DIM = PRIMARY_DIM
+BRAND_MINT_DIM = SUCCESS_DIM
+FONT = FONT_BODY
+GRID = BORDER
 
 
 def sparkline(daily: pd.DataFrame) -> go.Figure:
