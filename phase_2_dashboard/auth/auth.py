@@ -1,5 +1,5 @@
 """
-Streamlit session + signed token (HMAC JWT-style, stdlib only).
+Streamlit session + signed token (HMAC) + server-side session_id validation (Phase 4).
 """
 
 from __future__ import annotations
@@ -14,10 +14,12 @@ from typing import Any
 
 import streamlit as st
 
+from auth.sessions import create_session, revoke_session, validate_session
 from auth.users import authenticate, init_auth_db
 
 _SESSION_USER = "auth_user"
 _SESSION_TOKEN = "auth_token"
+_SESSION_ID = "auth_session_id"
 _TOKEN_TTL_SEC = 60 * 60 * 12  # 12 hours
 
 
@@ -36,9 +38,10 @@ def _b64url_decode(data: str) -> bytes:
     return base64.urlsafe_b64decode(data + pad)
 
 
-def create_token(user: dict[str, Any]) -> str:
+def create_token(user: dict[str, Any], session_id: str) -> str:
     payload = {
         "sub": user["id"],
+        "sid": session_id,
         "username": user["username"],
         "role": user["role"],
         "display_name": user["display_name"],
@@ -61,8 +64,12 @@ def verify_token(token: str) -> dict[str, Any] | None:
         payload = json.loads(_b64url_decode(body).decode("utf-8"))
         if int(payload.get("exp", 0)) < int(time.time()):
             return None
+        sid = payload.get("sid")
+        uid = int(payload.get("sub", 0))
+        if not sid or not validate_session(str(sid), uid):
+            return None
         return payload
-    except (ValueError, json.JSONDecodeError, OSError):
+    except (ValueError, json.JSONDecodeError, OSError, TypeError):
         return None
 
 
@@ -71,20 +78,30 @@ def login(username: str, password: str) -> bool:
     user = authenticate(username, password)
     if user is None:
         return False
+    session_id = create_session(int(user["id"]))
     st.session_state[_SESSION_USER] = user
-    st.session_state[_SESSION_TOKEN] = create_token(user)
+    st.session_state[_SESSION_ID] = session_id
+    st.session_state[_SESSION_TOKEN] = create_token(user, session_id)
     return True
 
 
 def logout() -> None:
+    revoke_session(st.session_state.get(_SESSION_ID))
     st.session_state.pop(_SESSION_USER, None)
     st.session_state.pop(_SESSION_TOKEN, None)
+    st.session_state.pop(_SESSION_ID, None)
 
 
 def restore_session() -> None:
-    """Rehydrate user from signed token if present."""
+    """Rehydrate user from signed token + live session row."""
     if _SESSION_USER in st.session_state:
+        sid = st.session_state.get(_SESSION_ID)
+        user = st.session_state.get(_SESSION_USER)
+        if user and sid and validate_session(str(sid), int(user["id"])):
+            return
+        logout()
         return
+
     token = st.session_state.get(_SESSION_TOKEN)
     if not token:
         return
@@ -92,6 +109,7 @@ def restore_session() -> None:
     if payload is None:
         logout()
         return
+    st.session_state[_SESSION_ID] = payload["sid"]
     st.session_state[_SESSION_USER] = {
         "id": int(payload["sub"]),
         "username": payload["username"],
@@ -109,6 +127,12 @@ def is_authenticated() -> bool:
 def get_current_user() -> dict[str, Any] | None:
     restore_session()
     return st.session_state.get(_SESSION_USER)
+
+
+def get_session_id() -> str | None:
+    restore_session()
+    sid = st.session_state.get(_SESSION_ID)
+    return str(sid) if sid else None
 
 
 def get_role() -> str | None:

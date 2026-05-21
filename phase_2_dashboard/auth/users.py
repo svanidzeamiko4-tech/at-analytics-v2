@@ -6,15 +6,14 @@ SQLite file: ``phase_2_dashboard/auth/at_auth.db`` (separate from ``amiko_v3.db`
 
 from __future__ import annotations
 
-import hashlib
 import os
-import secrets
 import sqlite3
 from pathlib import Path
 from typing import Any
 
+from auth.passwords import hash_password, needs_rehash, verify_password
+
 AUTH_DB_NAME = "at_auth.db"
-_PBKDF2_ITERATIONS = 260_000
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -51,35 +50,19 @@ def _connect() -> sqlite3.Connection:
     return conn
 
 
-def _hash_password(password: str, salt: bytes | None = None) -> str:
-    salt = salt or secrets.token_bytes(16)
-    digest = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt, _PBKDF2_ITERATIONS
-    )
-    return f"pbkdf2_sha256${_PBKDF2_ITERATIONS}${salt.hex()}${digest.hex()}"
-
-
-def _verify_password(password: str, stored: str) -> bool:
-    try:
-        algo, iters_s, salt_hex, digest_hex = stored.split("$", 3)
-        if algo != "pbkdf2_sha256":
-            return False
-        iters = int(iters_s)
-        salt = bytes.fromhex(salt_hex)
-        expected = bytes.fromhex(digest_hex)
-    except (ValueError, TypeError):
-        return False
-    got = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iters)
-    return secrets.compare_digest(got, expected)
-
-
 def init_auth_db(seed_if_empty: bool = True) -> Path:
-    """Create schema; optionally seed default manager + distributor."""
+    """Create users schema, then sessions schema; optionally seed defaults."""
     path = get_auth_db_path()
     with _connect() as conn:
         conn.executescript(_SCHEMA)
         conn.commit()
-        if seed_if_empty:
+
+    from auth.sessions import ensure_sessions_schema
+
+    ensure_sessions_schema()
+
+    if seed_if_empty:
+        with _connect() as conn:
             n = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
             if n == 0:
                 _seed_defaults(conn)
@@ -131,7 +114,7 @@ def _insert_user_conn(
         INSERT INTO users (username, password_hash, role, display_name)
         VALUES (?, ?, ?, ?)
         """,
-        (username.strip(), _hash_password(password), role, display_name),
+        (username.strip(), hash_password(password), role, display_name),
     )
     return int(cur.lastrowid)
 
@@ -150,8 +133,15 @@ def authenticate(username: str, password: str) -> dict[str, Any] | None:
         ).fetchone()
         if row is None or not row["active"]:
             return None
-        if not _verify_password(password, row["password_hash"]):
+        stored_hash = row["password_hash"]
+        if not verify_password(password, stored_hash):
             return None
+        if needs_rehash(stored_hash):
+            conn.execute(
+                "UPDATE users SET password_hash = ? WHERE id = ?",
+                (hash_password(password), int(row["id"])),
+            )
+            conn.commit()
         store_ids = _store_ids_for_user(conn, int(row["id"]), row["role"])
         return {
             "id": int(row["id"]),
@@ -205,7 +195,7 @@ def create_user(username: str, password: str, role: str) -> tuple[bool, str]:
                 INSERT INTO users (username, password_hash, role)
                 VALUES (?, ?, ?)
                 """,
-                (username.strip(), _hash_password(password), role),
+                (username.strip(), hash_password(password), role),
             )
             conn.commit()
             return True, "ok"
@@ -221,12 +211,15 @@ def delete_user(user_id: int) -> None:
 
 
 def change_password(user_id: int, new_password: str) -> None:
+    from auth.sessions import revoke_all_for_user
+
     with _connect() as conn:
         conn.execute(
             "UPDATE users SET password_hash = ? WHERE id = ?",
-            (_hash_password(new_password), user_id),
+            (hash_password(new_password), user_id),
         )
         conn.commit()
+    revoke_all_for_user(user_id)
 
 
 def get_user_stores(user_id: int) -> list[int]:

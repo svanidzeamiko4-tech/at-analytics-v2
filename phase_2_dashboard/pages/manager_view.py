@@ -11,6 +11,7 @@ from dashboard_core import (
     render_dashboard,
     render_dashboard_shell,
     render_floating_ai_chat,
+    render_restock_recommendations_section,
 )
 from data_loader import (
     daily_sales_returns_series,
@@ -55,7 +56,9 @@ def render() -> None:
         with c2:
             themed_plotly_chart(sales_returns_bar(rsr), key="reports_bars")
     elif page == "მარაგები":
-        st.subheader("📦 მარაგები და შეკვეთის დაგეგმვა")
+        render_restock_recommendations_section(inv, d_start, d_end)
+        st.markdown("---")
+        st.subheader("📋 შეკვეთის დაგეგმვა")
         render_order_planning(allowed_store_ids=None)
     elif page == "პარტნიორები":
         st.subheader("🤝 პარტნიორები — გაყიდვები მაღაზიის მიხედვით")

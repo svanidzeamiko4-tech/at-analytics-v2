@@ -10,7 +10,6 @@ from __future__ import annotations
 import hashlib
 import os
 import re
-import sqlite3
 import sys
 import unicodedata
 from datetime import date, datetime, timedelta
@@ -56,15 +55,16 @@ def resolve_db_path(explicit: Path | str | None = None) -> Path:
     return DEFAULT_DB_PATH.resolve()
 
 
-def connect_readonly(db_path: Path | None = None) -> sqlite3.Connection:
-    """Open SQLite in read-only URI mode (no writes even by accident)."""
-    path = resolve_db_path(db_path)
-    if not path.is_file():
-        raise FileNotFoundError(f"Database not found: {path}")
-    uri = path.resolve().as_uri() + "?mode=ro"
-    conn = sqlite3.connect(uri, uri=True)
-    conn.row_factory = sqlite3.Row
-    return conn
+def connect_readonly(db_path: Path | str | None = None):
+    """
+    Open read-only analytics DB (SQLite file or PostgreSQL via adapter).
+
+    Backend is chosen from ``USE_POSTGRES``; callers must not depend on sqlite3 type.
+    """
+    from database.adapter import open_analytics_readonly
+
+    path = resolve_db_path(db_path) if db_path is not None else None
+    return open_analytics_readonly(path)
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ def _fix_store_name_ocr_typos(series: pd.Series) -> pd.Series:
     return out
 
 
-def _print_stores_table_sample(conn: sqlite3.Connection) -> None:
+def _print_stores_table_sample(conn: Any) -> None:
     """Print first 5 ``stores`` rows once per process (verification / debugging)."""
     global _STORES_VERIFY_LOGGED
     if _STORES_VERIFY_LOGGED:
@@ -168,7 +168,7 @@ def _print_stores_table_sample(conn: sqlite3.Connection) -> None:
         print("[AT_VERIFY_STORES_SAMPLE] First 5 rows of stores:", flush=True)
         for row in rows:
             print(dict(zip(cols, row)), flush=True)
-    except sqlite3.Error as exc:
+    except Exception as exc:
         print("[AT_VERIFY_STORES_SAMPLE] query failed:", exc, flush=True)
 
 
@@ -455,7 +455,9 @@ def load_invoices_enriched(db_path: Path | None = None) -> pd.DataFrame:
             if c in have:
                 parts.append(f"i.{c} AS {c}")
         q = "SELECT\n    " + ",\n    ".join(parts) + "\nFROM invoices i\nLEFT JOIN stores s ON s.id = i.store_id"
-        df = pd.read_sql_query(q, conn)
+        from database.adapter import read_sql_query
+
+        df = read_sql_query(q, conn)
     if "store_address" not in df.columns:
         df["store_address"] = _MISSING_ADDRESS_MARKER
     if df.empty:
@@ -510,7 +512,9 @@ def load_line_items(db_path: Path | None = None) -> pd.DataFrame:
         if opt:
             extra_cols = ",\n    " + ",\n    ".join(opt)
         q = _SQL_LINE_ITEMS_SELECT.format(extra_cols=extra_cols)
-        return pd.read_sql_query(q, conn)
+        from database.adapter import read_sql_query
+
+        return read_sql_query(q, conn)
 
 
 def load_dashboard_frames(db_path: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:

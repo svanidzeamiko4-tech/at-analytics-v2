@@ -1,0 +1,79 @@
+# AT Analytics — full stack: Postgres + Streamlit + RS.GE worker + nginx (SSL)
+# Usage: copy .env.example → .env, edit secrets, then: docker compose up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-at_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-at_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-at_analytics}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-at_user} -d ${POSTGRES_DB:-at_analytics}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PYTHONPATH: /app/phase_2_dashboard
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-at_user}:${POSTGRES_PASSWORD:-at_change_me}@postgres:5432/${POSTGRES_DB:-at_analytics}
+      USE_POSTGRES: "true"
+      AT_ENV: production
+      AT_DEBUG: "false"
+    volumes:
+      - ./logs:/app/logs
+      - app_auth:/app/phase_2_dashboard/auth
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8501"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  worker:
+    build: .
+    restart: unless-stopped
+    working_dir: /app/phase_2_dashboard
+    command: ["python", "-m", "workers.rs_ge_worker"]
+    env_file: .env
+    environment:
+      PYTHONPATH: /app/phase_2_dashboard
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-at_user}:${POSTGRES_PASSWORD:-at_change_me}@postgres:5432/${POSTGRES_DB:-at_analytics}
+      USE_POSTGRES: "true"
+      AT_ENV: production
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/certs:/etc/nginx/certs:ro
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+  app_auth:

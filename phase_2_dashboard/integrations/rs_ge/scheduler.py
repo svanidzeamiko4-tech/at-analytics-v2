@@ -1,11 +1,11 @@
 """
-Daily RS.ge sync at ``config.SYNC_HOUR`` (default 02:00).
+DEPRECATED — use APScheduler worker instead (Phase 2).
 
-Requires: ``pip install schedule``
+    python -m workers.rs_ge_worker
 
-Run from ``phase_2_dashboard/``:
-
-    python -m integrations.rs_ge.scheduler
+This module (``schedule`` lib, daily 02:00) is kept for reference only.
+Production sync must run in a **separate process**, not Streamlit.
+See ``docs/PHASE_2_RS_GE_WORKER.md``.
 """
 
 from __future__ import annotations

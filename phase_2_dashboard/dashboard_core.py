@@ -55,6 +55,7 @@ from ui_theme import (
     PRIMARY,
     RADIUS,
     SUCCESS,
+    is_dark_mode,
     themed_plotly_chart,
 )
 
@@ -78,6 +79,54 @@ def _filter_frames(
     return inv_f, lines_f
 
 
+def render_restock_recommendations_section(
+    inv: pd.DataFrame,
+    d_start: date,
+    d_end: date,
+) -> None:
+    """Restock cards for main content (not sidebar)."""
+    rec = restock_recommendations_by_store(inv, d_start, d_end)
+    st.markdown(f"### 📦 {GEO['restock_heading']}")
+    st.caption(GEO['restock_sub'])
+    if rec.empty:
+        st.info(GEO["no_data"])
+        return
+
+    is_dark = is_dark_mode()
+    card_bg = CARD if is_dark else "#ffffff"
+    text_main = "#E5E7EB" if is_dark else "#0f172a"
+    text_muted = MUTED if is_dark else "#64748b"
+    border = BORDER if is_dark else "#e2e8f0"
+
+    rows = list(rec.iterrows())
+    for row_start in range(0, len(rows), 3):
+        cols = st.columns(3)
+        for col_idx, col in enumerate(cols):
+            item_idx = row_start + col_idx
+            if item_idx >= len(rows):
+                break
+            _, row = rows[item_idx]
+            sname = str(row["store_name"])
+            display = html.escape(sname[:28] + "…" if len(sname) > 28 else sname)
+            with col:
+                st.markdown(
+                    f'<div class="dashboard-card" style="background:{card_bg};'
+                    f"border:1px solid {border};border-radius:{RADIUS};"
+                    f'padding:16px 18px;margin-bottom:12px;">'
+                    f'<div style="color:{PRIMARY};font-size:0.68rem;text-transform:uppercase;'
+                    f'letter-spacing:0.08em;margin-bottom:4px;">'
+                    f"{GEO['restock_card_title']}</div>"
+                    f'<div style="color:{text_main};font-size:0.9rem;font-weight:600;'
+                    f'margin-bottom:8px;">{display}</div>'
+                    f'<div style="color:{SUCCESS};font-size:1.15rem;font-weight:700;">'
+                    f"{row['recommended_restock_gel']:,.2f} GEL</div>"
+                    f'<div style="color:{text_muted};font-size:0.75rem;margin-top:6px;">'
+                    f"{GEO['restock_avg']}: {row['avg_daily_revenue_gel']:,.2f} · "
+                    f"{GEO['restock_conf']}: {int(row['confidence_pct'])}%</div></div>",
+                    unsafe_allow_html=True,
+                )
+
+
 def render_dashboard(
     inv: pd.DataFrame,
     lines: pd.DataFrame,
@@ -86,7 +135,7 @@ def render_dashboard(
     allowed_store_ids: list[int] | None = None,
 ) -> None:
     """
-    Render main dashboard content (KPIs, charts); restock cards in sidebar.
+    Render main dashboard content (KPIs, charts). Restock → ``მარაგები`` page.
     ``allowed_store_ids=None`` → all stores; else filter to listed ids.
     """
     inv, lines = _filter_frames(inv, lines, allowed_store_ids)
@@ -162,30 +211,6 @@ def render_dashboard(
         prod_df = all_products_by_quantity_share(inv, lines, d_start, d_end)
         themed_plotly_chart(top_products_chart(prod_df, top_n=15), key="products_all")
 
-    rec = restock_recommendations_by_store(inv, d_start, d_end)
-    if not rec.empty:
-        st.sidebar.markdown("---")
-        st.sidebar.markdown("### 📦 მარაგების შევსება")
-        st.sidebar.caption("რეკომენდებული · 1–2 დღე")
-        for _, row in rec.iterrows():
-            sname = str(row["store_name"])
-            display = html.escape(sname[:25] + "…" if len(sname) > 25 else sname)
-            st.sidebar.markdown(
-                f'<div style="background:{CARD};border:1px solid {BORDER};'
-                f"border-radius:{RADIUS};padding:14px 16px;margin-bottom:10px;\">"
-                f'<div style="color:{PRIMARY};font-size:0.68rem;text-transform:uppercase;'
-                f'letter-spacing:0.08em;margin-bottom:4px;">შევსება · 1–2 დღე</div>'
-                f'<div style="color:#E5E7EB;font-size:0.88rem;font-weight:600;'
-                f'margin-bottom:6px;">{display}</div>'
-                f'<div style="color:{SUCCESS};font-size:1.1rem;font-weight:700;">'
-                f"{row['recommended_restock_gel']:,.2f} GEL</div>"
-                f'<div style="color:{MUTED};font-size:0.72rem;margin-top:4px;">'
-                f"საშ: {row['avg_daily_revenue_gel']:,.2f} · "
-                f"სიზ: {int(row['confidence_pct'])}%</div></div>",
-                unsafe_allow_html=True,
-            )
-
-
 
 def prepare_dashboard_data(
     allowed_store_ids: list[int] | None,
@@ -234,7 +259,6 @@ def prepare_dashboard_data(
     )
     st.sidebar.metric(GEO["invoices"], n_inv)
     st.sidebar.metric(GEO["line_items"], n_lines)
-    st.sidebar.caption(f"{GEO['db_file']}: `{db_path.name}`")
     return inv, lines, d_start, d_end
 
 

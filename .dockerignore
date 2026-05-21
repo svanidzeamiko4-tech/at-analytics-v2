@@ -1,0 +1,14 @@
+.git
+.gitignore
+.cursor
+__pycache__
+*.pyc
+.env
+*.db-journal
+streamlit_boot.log
+.handoffs
+agent-transcripts
+terminals
+node_modules
+.venv
+venv

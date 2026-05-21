@@ -9,7 +9,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from ui_theme import GEO, GOOGLE_FONTS_URL, PRIMARY, load_design_css
+from ui_theme import GEO, PRIMARY, apply_theme_css
 
 LOGO_PATH = Path(__file__).resolve().parent / "assets" / "at_analytics_logo.png"
 PAGES = ["დაფა", "ანალიტიკა", "ანგარიშები", "მარაგები", "პარტნიორები"]
@@ -25,69 +25,6 @@ def init_app_state() -> None:
     if "dark_mode" not in st.session_state:
         st.session_state.dark_mode = True
     st.session_state["theme"] = get_theme_name()
-
-
-def inject_theme_bridge() -> None:
-    """
-    Force browser ``data-theme`` to match Python session (overrides localStorage drift).
-    """
-    is_dark = bool(st.session_state.get("dark_mode", True))
-    theme_value = "dark" if is_dark else "light"
-    st.markdown(
-        f"""
-        <script>
-        (function () {{
-            var targetTheme = "{theme_value}";
-            function applyTheme(el) {{
-                if (el) el.setAttribute("data-theme", targetTheme);
-            }}
-            applyTheme(document.documentElement);
-            applyTheme(document.body);
-            try {{
-                var app = document.querySelector(".stApp");
-                if (app) applyTheme(app);
-                var view = document.querySelector('[data-testid="stAppViewContainer"]');
-                if (view) applyTheme(view);
-            }} catch (e) {{}}
-            try {{
-                if (window.parent && window.parent.document) {{
-                    applyTheme(window.parent.document.documentElement);
-                    applyTheme(window.parent.document.body);
-                }}
-            }} catch (e) {{}}
-            try {{
-                localStorage.setItem("theme", targetTheme);
-            }} catch (e) {{}}
-            window.toggleTheme = function () {{
-                var html = document.documentElement;
-                var next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
-                html.setAttribute("data-theme", next);
-                try {{ localStorage.setItem("theme", next); }} catch (e) {{}}
-            }};
-        }})();
-        </script>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def apply_theme_css() -> None:
-    """Load scoped CSS + inject theme (Python state is authoritative)."""
-    is_dark = bool(st.session_state.get("dark_mode", True))
-    theme_value = "dark" if is_dark else "light"
-    inject_theme_bridge()
-    st.markdown(
-        f"""
-        <style>
-        {load_design_css()}
-        @import url('{GOOGLE_FONTS_URL}');
-        html, :root {{
-            color-scheme: {"dark" if is_dark else "light"};
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def _logo_html() -> str:
