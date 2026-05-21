@@ -67,10 +67,14 @@ def load_design_css() -> str:
     return "\n".join(chunks)
 
 
+def is_dark_mode() -> bool:
+    """True when ``st.session_state.dark_mode`` is True (default)."""
+    return bool(st.session_state.get("dark_mode", True))
+
+
 def _theme_palette() -> dict[str, str]:
     """Runtime palette from ``st.session_state.dark_mode`` (authoritative)."""
-    is_dark = bool(st.session_state.get("dark_mode", True))
-    if is_dark:
+    if is_dark_mode():
         return {
             "name": "dark",
             "bg": "#0B1120",
@@ -94,23 +98,17 @@ def _theme_palette() -> dict[str, str]:
 
 
 def _runtime_theme_css(palette: dict[str, str]) -> str:
-    """Overrides static token files — must run every rerun after toggle."""
+    """Direct overrides from current palette (no ``data-theme`` selectors)."""
     t = palette["name"]
     bg, card, text = palette["bg"], palette["card"], palette["text"]
     muted, border = palette["muted"], palette["border"]
     sidebar, input_bg = palette["sidebar"], palette["input_bg"]
+    color_scheme = "dark" if t == "dark" else "light"
     return f"""
-html[data-theme="{t}"],
-html[data-theme="{t}"] body,
-html[data-theme="{t}"] .stApp,
-html[data-theme="{t}"] [data-testid="stAppViewContainer"],
-html[data-theme="{t}"] [data-testid="stMain"],
-html[data-theme="{t}"] section.main {{
-  background-color: {bg} !important;
-  color: {text} !important;
+html, body {{
+  color-scheme: {color_scheme};
 }}
-html[data-theme="{t}"] {{
-  color-scheme: {"dark" if t == "dark" else "light"};
+:root {{
   --color-bg-main: {bg};
   --color-bg-secondary: {card};
   --color-bg-card: {card};
@@ -120,90 +118,62 @@ html[data-theme="{t}"] {{
   --color-border: {border};
   --color-gradient-main: {bg};
 }}
-html[data-theme="{t}"] .card,
-html[data-theme="{t}"] .at-card,
-html[data-theme="{t}"] .stat-card,
-html[data-theme="{t}"] .hero-card,
-html[data-theme="{t}"] .card-glass,
-html[data-theme="{t}"] .ai-box,
-html[data-theme="{t}"] div[data-testid="stMetric"],
-html[data-theme="{t}"] [data-testid="stMetric"] {{
+.stApp,
+body,
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+section.main,
+.main {{
+  background-color: {bg} !important;
+  color: {text} !important;
+}}
+.card,
+.at-card,
+.stat-card,
+.hero-card,
+.card-glass,
+.ai-box,
+div[data-testid="stMetric"],
+[data-testid="stMetric"] {{
   background-color: {card} !important;
   color: {text} !important;
   border-color: {border} !important;
 }}
-html[data-theme="{t}"] [data-testid="stSidebar"],
-html[data-theme="{t}"] [data-testid="stSidebar"] > div {{
+[data-testid="stSidebar"],
+[data-testid="stSidebar"] > div {{
   background-color: {sidebar} !important;
   color: {text} !important;
 }}
-html[data-theme="{t}"] [data-testid="stSidebar"] * {{
+[data-testid="stSidebar"] * {{
   color: {text};
 }}
-html[data-theme="{t}"] .stMarkdown,
-html[data-theme="{t}"] .stMarkdown p,
-html[data-theme="{t}"] .stMarkdown li,
-html[data-theme="{t}"] .stMarkdown span,
-html[data-theme="{t}"] .stMarkdown h1,
-html[data-theme="{t}"] .stMarkdown h2,
-html[data-theme="{t}"] .stMarkdown h3,
-html[data-theme="{t}"] label,
-html[data-theme="{t}"] .main-title,
-html[data-theme="{t}"] .subtitle {{
+.stMarkdown,
+.stMarkdown p,
+.stMarkdown li,
+.stMarkdown span,
+.stMarkdown h1,
+.stMarkdown h2,
+.stMarkdown h3,
+label,
+.main-title {{
   color: {text} !important;
 }}
-html[data-theme="{t}"] .subtitle,
-html[data-theme="{t}"] .stat-label {{
+.subtitle,
+.stat-label {{
   color: {muted} !important;
 }}
-html[data-theme="{t}"] [data-testid="stTextInput"] input,
-html[data-theme="{t}"] [data-testid="stNumberInput"] input,
-html[data-theme="{t}"] [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-html[data-theme="{t}"] [data-testid="stDateInput"] input {{
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+[data-testid="stDateInput"] input {{
   background-color: {input_bg} !important;
   color: {text} !important;
   border-color: {border} !important;
 }}
-html[data-theme="{t}"] [data-testid="stHeader"] {{
+[data-testid="stHeader"] {{
   background-color: {bg} !important;
 }}
 """
-
-
-def inject_theme_bridge() -> None:
-    """Sync ``data-theme`` on DOM to match Python ``dark_mode``."""
-    is_dark = bool(st.session_state.get("dark_mode", True))
-    theme_value = "dark" if is_dark else "light"
-    st.markdown(
-        f"""
-        <script>
-        (function () {{
-            var targetTheme = "{theme_value}";
-            function applyTheme(el) {{
-                if (el) el.setAttribute("data-theme", targetTheme);
-            }}
-            applyTheme(document.documentElement);
-            applyTheme(document.body);
-            try {{
-                var app = document.querySelector(".stApp");
-                if (app) applyTheme(app);
-                var view = document.querySelector('[data-testid="stAppViewContainer"]');
-                if (view) applyTheme(view);
-            }} catch (e) {{}}
-            try {{
-                if (window.parent && window.parent.document) {{
-                    applyTheme(window.parent.document.documentElement);
-                    applyTheme(window.parent.document.body);
-                }}
-            }} catch (e) {{}}
-            try {{
-                localStorage.setItem("theme", targetTheme);
-            }} catch (e) {{}}
-        }})();
-        </script>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def apply_theme_css() -> None:
@@ -215,7 +185,6 @@ def apply_theme_css() -> None:
         st.session_state.dark_mode = True
     st.session_state["theme"] = get_theme_name()
     palette = _theme_palette()
-    inject_theme_bridge()
     st.markdown(
         f"""
         <style>
@@ -230,7 +199,7 @@ def apply_theme_css() -> None:
 
 def is_light_mode() -> bool:
     """True when light theme is active (``dark_mode`` is False)."""
-    return not st.session_state.get("dark_mode", True)
+    return not is_dark_mode()
 
 
 def plotly_axis_style() -> dict[str, object]:
@@ -254,13 +223,18 @@ def apply_plotly_theme(fig: object) -> object:
     Repaint Plotly layout on every rerun (bypasses any frozen figure styling).
     Must run immediately before ``st.plotly_chart``.
     """
-    is_dark = st.session_state.get("dark_mode", True)
-
-    paper_bg = "#0B1120" if is_dark else "#F4F7FB"
-    plot_bg = "#0F172A" if is_dark else "#FFFFFF"
-    text_color = "#E5E7EB" if is_dark else "#111827"
-    grid_color = "#1F2937" if is_dark else "#E5E7EB"
-    hover_bg = "#151F32" if is_dark else "#FFFFFF"
+    if is_dark_mode():
+        paper_bg = "#0F172A"
+        plot_bg = "#0F172A"
+        text_color = "#F1F5F9"
+        grid_color = "#1E293B"
+        hover_bg = "#151F32"
+    else:
+        paper_bg = "#FFFFFF"
+        plot_bg = "#F4F7FB"
+        text_color = "#1E293B"
+        grid_color = "#E2E8F0"
+        hover_bg = "#FFFFFF"
 
     axis_style = dict(
         gridcolor=grid_color,
@@ -289,7 +263,7 @@ def apply_plotly_theme(fig: object) -> object:
     if fig.layout.annotations:
         fig.update_annotations(font=dict(color=text_color))
 
-    pie_line = "#FFFFFF" if is_light_mode() else "#0F172A"
+    pie_line = "#FFFFFF" if not is_dark_mode() else "#0F172A"
     fig.update_traces(textfont=dict(color=text_color))
     fig.update_traces(
         marker=dict(line=dict(color=pie_line)),
