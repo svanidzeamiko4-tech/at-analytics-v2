@@ -29,6 +29,16 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from ui_theme import apply_theme_css  # noqa: E402
+
+import ui_shell  # noqa: E402
+
+ui_shell.apply_theme_css = apply_theme_css
+
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True
+apply_theme_css()
+
 
 def _css() -> str:
     return """
@@ -71,16 +81,14 @@ def main() -> None:
     from pages.distributor_view import render as render_distributor
     from pages.login import render as render_login
     from pages.manager_view import render as render_manager
-    from ui_shell import apply_theme_css, init_app_state
+    from ui_shell import init_app_state
 
+    apply_theme_css()
     init_app_state()
     restore_session()
     if not is_authenticated():
-        apply_theme_css()
         render_login()
         return
-
-    apply_theme_css()
     user = get_current_user()
     role = get_role()
     with st.sidebar:

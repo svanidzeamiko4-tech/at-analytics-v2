@@ -58,13 +58,174 @@ GOOGLE_FONTS_URL = (
 
 
 def load_design_css() -> str:
-    """Load design system cascade: tokens → base → components."""
+    """Load static design-system files (tokens → base → components)."""
     chunks: list[str] = []
     for name in ("design-tokens.css", "base.css", "components.css"):
         path = _PKG / name
         if path.is_file():
             chunks.append(path.read_text(encoding="utf-8"))
     return "\n".join(chunks)
+
+
+def _theme_palette() -> dict[str, str]:
+    """Runtime palette from ``st.session_state.dark_mode`` (authoritative)."""
+    is_dark = bool(st.session_state.get("dark_mode", True))
+    if is_dark:
+        return {
+            "name": "dark",
+            "bg": "#0B1120",
+            "card": "#0F172A",
+            "text": "#F1F5F9",
+            "muted": "#94A3B8",
+            "border": "#1F2937",
+            "sidebar": "#111827",
+            "input_bg": "#0F172A",
+        }
+    return {
+        "name": "light",
+        "bg": "#F4F7FB",
+        "card": "#FFFFFF",
+        "text": "#1E293B",
+        "muted": "#64748B",
+        "border": "#E5E7EB",
+        "sidebar": "#FFFFFF",
+        "input_bg": "#FFFFFF",
+    }
+
+
+def _runtime_theme_css(palette: dict[str, str]) -> str:
+    """Overrides static token files — must run every rerun after toggle."""
+    t = palette["name"]
+    bg, card, text = palette["bg"], palette["card"], palette["text"]
+    muted, border = palette["muted"], palette["border"]
+    sidebar, input_bg = palette["sidebar"], palette["input_bg"]
+    return f"""
+html[data-theme="{t}"],
+html[data-theme="{t}"] body,
+html[data-theme="{t}"] .stApp,
+html[data-theme="{t}"] [data-testid="stAppViewContainer"],
+html[data-theme="{t}"] [data-testid="stMain"],
+html[data-theme="{t}"] section.main {{
+  background-color: {bg} !important;
+  color: {text} !important;
+}}
+html[data-theme="{t}"] {{
+  color-scheme: {"dark" if t == "dark" else "light"};
+  --color-bg-main: {bg};
+  --color-bg-secondary: {card};
+  --color-bg-card: {card};
+  --color-bg-soft: {card};
+  --color-text-primary: {text};
+  --color-text-secondary: {muted};
+  --color-border: {border};
+  --color-gradient-main: {bg};
+}}
+html[data-theme="{t}"] .card,
+html[data-theme="{t}"] .at-card,
+html[data-theme="{t}"] .stat-card,
+html[data-theme="{t}"] .hero-card,
+html[data-theme="{t}"] .card-glass,
+html[data-theme="{t}"] .ai-box,
+html[data-theme="{t}"] div[data-testid="stMetric"],
+html[data-theme="{t}"] [data-testid="stMetric"] {{
+  background-color: {card} !important;
+  color: {text} !important;
+  border-color: {border} !important;
+}}
+html[data-theme="{t}"] [data-testid="stSidebar"],
+html[data-theme="{t}"] [data-testid="stSidebar"] > div {{
+  background-color: {sidebar} !important;
+  color: {text} !important;
+}}
+html[data-theme="{t}"] [data-testid="stSidebar"] * {{
+  color: {text};
+}}
+html[data-theme="{t}"] .stMarkdown,
+html[data-theme="{t}"] .stMarkdown p,
+html[data-theme="{t}"] .stMarkdown li,
+html[data-theme="{t}"] .stMarkdown span,
+html[data-theme="{t}"] .stMarkdown h1,
+html[data-theme="{t}"] .stMarkdown h2,
+html[data-theme="{t}"] .stMarkdown h3,
+html[data-theme="{t}"] label,
+html[data-theme="{t}"] .main-title,
+html[data-theme="{t}"] .subtitle {{
+  color: {text} !important;
+}}
+html[data-theme="{t}"] .subtitle,
+html[data-theme="{t}"] .stat-label {{
+  color: {muted} !important;
+}}
+html[data-theme="{t}"] [data-testid="stTextInput"] input,
+html[data-theme="{t}"] [data-testid="stNumberInput"] input,
+html[data-theme="{t}"] [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+html[data-theme="{t}"] [data-testid="stDateInput"] input {{
+  background-color: {input_bg} !important;
+  color: {text} !important;
+  border-color: {border} !important;
+}}
+html[data-theme="{t}"] [data-testid="stHeader"] {{
+  background-color: {bg} !important;
+}}
+"""
+
+
+def inject_theme_bridge() -> None:
+    """Sync ``data-theme`` on DOM to match Python ``dark_mode``."""
+    is_dark = bool(st.session_state.get("dark_mode", True))
+    theme_value = "dark" if is_dark else "light"
+    st.markdown(
+        f"""
+        <script>
+        (function () {{
+            var targetTheme = "{theme_value}";
+            function applyTheme(el) {{
+                if (el) el.setAttribute("data-theme", targetTheme);
+            }}
+            applyTheme(document.documentElement);
+            applyTheme(document.body);
+            try {{
+                var app = document.querySelector(".stApp");
+                if (app) applyTheme(app);
+                var view = document.querySelector('[data-testid="stAppViewContainer"]');
+                if (view) applyTheme(view);
+            }} catch (e) {{}}
+            try {{
+                if (window.parent && window.parent.document) {{
+                    applyTheme(window.parent.document.documentElement);
+                    applyTheme(window.parent.document.body);
+                }}
+            }} catch (e) {{}}
+            try {{
+                localStorage.setItem("theme", targetTheme);
+            }} catch (e) {{}}
+        }})();
+        </script>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def apply_theme_css() -> None:
+    """
+    Inject theme on every rerun from ``st.session_state.dark_mode``.
+    Static CSS files load first; runtime block overrides backgrounds/text.
+    """
+    if "dark_mode" not in st.session_state:
+        st.session_state.dark_mode = True
+    st.session_state["theme"] = get_theme_name()
+    palette = _theme_palette()
+    inject_theme_bridge()
+    st.markdown(
+        f"""
+        <style>
+        @import url('{GOOGLE_FONTS_URL}');
+        {load_design_css()}
+        {_runtime_theme_css(palette)}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def is_light_mode() -> bool:
