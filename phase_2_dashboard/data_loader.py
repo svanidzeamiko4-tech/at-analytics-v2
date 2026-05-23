@@ -117,7 +117,7 @@ def _parse_created_at(raw: str | None) -> date | None:
 
 # Credit/return invoice text on ``invoice_number`` / ``notes`` (not full raw OCR in the flag).
 _RETURN_DOC_RX = re.compile(
-    r"საკრედიტო|დაბრუნება|უკან\s+დაბრუნება|კორექტირება|"
+    r"საკრედიტო|უკან\s+დაბრუნება|კორექტირება|"
     r"(?<![A-Za-z])Return(?![A-Za-z])|(?<![A-Za-z])Credit(?![A-Za-z])",
     re.I | re.UNICODE,
 )
@@ -414,9 +414,11 @@ def _compute_parent_invoice_is_return(df: pd.DataFrame) -> pd.Series:
         out = out | s.str.contains(_RETURN_DOC_RX, regex=True, na=False)
 
     if "raw_text_snippet" in df.columns:
-        s = df["raw_text_snippet"].fillna("").astype(str).str[:300]
+        s = df["raw_text_snippet"].fillna("").astype(str).str[:500]
         out = out | s.str.contains(
-            r"კორექტირების\s+თარიღი|საკრედიტო\s+ზედნადები|უკან\s*დაბრუნება",
+            r"ოპერაციის\s+შინაარსი[\s\S]{0,50}უკან\s+დაბრუნება|"
+            r"ოპერაციის\s+შინაარსი[\s\S]{0,50}საკრედიტო|"
+            r"კორექტირების\s+თარიღი",
             regex=True,
             na=False,
         )
