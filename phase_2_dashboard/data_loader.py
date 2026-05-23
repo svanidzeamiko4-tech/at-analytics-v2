@@ -417,8 +417,8 @@ def _compute_parent_invoice_is_return(df: pd.DataFrame) -> pd.Series:
         s = df["raw_text_snippet"].fillna("").astype(str).str[:2000]
         out = out | s.str.contains(
             r"კორექტირების\s+თარიღი|საკრედიტო\s+ზედნადები|"
-            r"შინაარსი\s*\n\s*უკან\s+დაბრუნება|"
-            r"ოპერაციის\s+შინაარსი[\s\S]{0,30}უკან\s+დაბრუნება(?!\s+ტრანსპორტირების)",
+            r"ოპერაციის\s+შინაარსი\s*\n\s*უკან\s+დაბრუნება|"
+            r"შინაარსი\s*\|\s*უკან\s+დაბრუნება",
             regex=True,
             na=False,
         )
