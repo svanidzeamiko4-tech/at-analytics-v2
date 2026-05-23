@@ -28,7 +28,10 @@ _COOKIE_PASSWORD = os.environ.get("AT_AUTH_SECRET", "at-analytics-dev-secret-cha
 
 
 def _get_cookies():
-    cookies = EncryptedCookieManager(prefix="at_", password=_COOKIE_PASSWORD)
+    if "at_cookie_manager" not in st.session_state:
+        cookies = EncryptedCookieManager(prefix="at_", password=_COOKIE_PASSWORD)
+        st.session_state["at_cookie_manager"] = cookies
+    cookies = st.session_state["at_cookie_manager"]
     if not cookies.ready():
         st.stop()
     return cookies
