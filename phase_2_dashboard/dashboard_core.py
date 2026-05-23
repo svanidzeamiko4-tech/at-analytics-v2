@@ -285,6 +285,6 @@ def render_dashboard_page(
     if data is None:
         return
     inv, lines, d_start, d_end = data
-    render_dashboard(inv, lines, d_start, d_end, allowed_store_ids=None)
+    render_dashboard(inv, lines, d_start, d_end, allowed_store_ids=allowed_store_ids)
     if show_ai_chat:
         render_floating_ai_chat()
