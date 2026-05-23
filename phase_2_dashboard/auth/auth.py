@@ -13,7 +13,6 @@ import time
 from typing import Any
 
 import streamlit as st
-from streamlit_cookies_manager import EncryptedCookieManager
 
 from auth.sessions import create_session, revoke_session, validate_session
 from auth.users import authenticate, init_auth_db
@@ -22,19 +21,6 @@ _SESSION_USER = "auth_user"
 _SESSION_TOKEN = "auth_token"
 _SESSION_ID = "auth_session_id"
 _TOKEN_TTL_SEC = 60 * 60 * 12  # 12 hours
-
-_COOKIE_NAME = "at_auth_token"
-_COOKIE_PASSWORD = os.environ.get("AT_AUTH_SECRET", "at-analytics-dev-secret-change-me")
-
-
-def _get_cookies():
-    if "at_cookie_manager" not in st.session_state:
-        cookies = EncryptedCookieManager(prefix="at_", password=_COOKIE_PASSWORD)
-        st.session_state["at_cookie_manager"] = cookies
-    cookies = st.session_state["at_cookie_manager"]
-    if not cookies.ready():
-        st.stop()
-    return cookies
 
 
 def _secret() -> bytes:
@@ -96,9 +82,6 @@ def login(username: str, password: str) -> bool:
     st.session_state[_SESSION_USER] = user
     st.session_state[_SESSION_ID] = session_id
     st.session_state[_SESSION_TOKEN] = create_token(user, session_id)
-    cookies = _get_cookies()
-    cookies[_COOKIE_NAME] = st.session_state[_SESSION_TOKEN]
-    cookies.save()
     return True
 
 
@@ -107,12 +90,6 @@ def logout() -> None:
     st.session_state.pop(_SESSION_USER, None)
     st.session_state.pop(_SESSION_TOKEN, None)
     st.session_state.pop(_SESSION_ID, None)
-    try:
-        cookies = _get_cookies()
-        cookies[_COOKIE_NAME] = ""
-        cookies.save()
-    except Exception:
-        pass
 
 
 def restore_session() -> None:
@@ -126,14 +103,6 @@ def restore_session() -> None:
         return
 
     token = st.session_state.get(_SESSION_TOKEN)
-    if not token:
-        try:
-            cookies = _get_cookies()
-            token = cookies.get(_COOKIE_NAME, "")
-            if token:
-                st.session_state[_SESSION_TOKEN] = token
-        except Exception:
-            pass
     if not token:
         return
     payload = verify_token(str(token))
