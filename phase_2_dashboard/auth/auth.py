@@ -82,6 +82,10 @@ def login(username: str, password: str) -> bool:
     st.session_state[_SESSION_USER] = user
     st.session_state[_SESSION_ID] = session_id
     st.session_state[_SESSION_TOKEN] = create_token(user, session_id)
+    try:
+        st.query_params["token"] = st.session_state[_SESSION_TOKEN]
+    except Exception:
+        pass
     return True
 
 
@@ -90,6 +94,10 @@ def logout() -> None:
     st.session_state.pop(_SESSION_USER, None)
     st.session_state.pop(_SESSION_TOKEN, None)
     st.session_state.pop(_SESSION_ID, None)
+    try:
+        st.query_params.clear()
+    except Exception:
+        pass
 
 
 def restore_session() -> None:
@@ -103,6 +111,13 @@ def restore_session() -> None:
         return
 
     token = st.session_state.get(_SESSION_TOKEN)
+    if not token:
+        try:
+            token = st.query_params.get("token", "")
+            if token:
+                st.session_state[_SESSION_TOKEN] = token
+        except Exception:
+            pass
     if not token:
         return
     payload = verify_token(str(token))
