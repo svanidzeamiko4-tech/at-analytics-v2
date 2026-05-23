@@ -1069,9 +1069,6 @@ def restock_recommendations_by_store(
     inv_f = inv_f.copy()
     if "store_display_name" in inv_f.columns:
         inv_f["store_display_name"] = _fix_store_name_ocr_typos(inv_f["store_display_name"])
-    inv_f = inv_f.copy()
-    if "store_display_name" in inv_f.columns:
-        inv_f["store_display_name"] = _fix_store_name_ocr_typos(inv_f["store_display_name"])
     elif "store_name" in inv_f.columns:
         inv_f["store_name"] = _fix_store_name_ocr_typos(inv_f["store_name"])
     days = period_calendar_days(start, end)
