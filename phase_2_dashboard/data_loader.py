@@ -117,7 +117,7 @@ def _parse_created_at(raw: str | None) -> date | None:
 
 # Credit/return invoice text on ``invoice_number`` / ``notes`` (not full raw OCR in the flag).
 _RETURN_DOC_RX = re.compile(
-    r"საკრედიტო|დაბრუნება|უკან\s+დაბრუნება|კორექტირება|"
+    r"საკრედიტო|დაბრუნება|უკან\s+დაბრუნება|ჩაბარება|კორექტირება|"
     r"(?<![A-Za-z])Return(?![A-Za-z])|(?<![A-Za-z])Credit(?![A-Za-z])",
     re.I | re.UNICODE,
 )
@@ -153,13 +153,6 @@ def _fix_store_name_ocr_typos(series: pd.Series) -> pd.Series:
     for wrong, right in _OCR_STORE_NAME_SUBSTITUTIONS:
         out = out.str.replace(wrong, right, regex=False)
     return out
-
-
-def _shorten_store(name: str, max_len: int = 20) -> str:
-    """ნიკორა (#464) — chain + branch only, capped."""
-    m = re.search(r"#\d+", name)
-    chain = name.split("(")[0].strip()[:12]
-    return f"{chain} ({m.group()})" if m else name[:max_len]
 
 
 def _print_stores_table_sample(conn: Any) -> None:
@@ -414,9 +407,9 @@ def _compute_parent_invoice_is_return(df: pd.DataFrame) -> pd.Series:
         out = out | s.str.contains(_RETURN_DOC_RX, regex=True, na=False)
 
     if "raw_text_snippet" in df.columns:
-        s = df["raw_text_snippet"].fillna("").astype(str).str[:2000]
+        s = df["raw_text_snippet"].fillna("").astype(str)
         out = out | s.str.contains(
-            r"კორექტირების\s+თარიღი|საკრედიტო\s+ზედნადები",
+            r"უკან\s*დაბრუნება|საკრედიტო|კორექტირება",
             regex=True,
             na=False,
         )
@@ -785,11 +778,7 @@ def top_products_by_quantity(
     lf = lf.merge(invk, on="invoice_id", how="left")
     lf = _ensure_store_display_on_lines(lf)
     lf["store_display_name"] = lf["store_display_name"].fillna("(უცნობი მაღაზია)")
-    lf["product_label"] = (
-        lf["store_display_name"].astype(str).map(_shorten_store)
-        + " · "
-        + lf["product_label"].astype(str)
-    )
+    lf["product_label"] = lf["store_display_name"].astype(str) + " · " + lf["product_label"].astype(str)
     lf["qty"] = lf["quantity"].fillna(0.0).astype(float)
     lf["sales_row"] = lf["line_total"].clip(lower=0).fillna(0.0).astype(float)
     total_sales = float(lf["sales_row"].sum()) or 1.0
@@ -1042,11 +1031,7 @@ def all_products_by_quantity_share(
     lf = lf.merge(invk, on="invoice_id", how="left")
     lf = _ensure_store_display_on_lines(lf)
     lf["store_display_name"] = lf["store_display_name"].fillna("(უცნობი მაღაზია)")
-    lf["product_label"] = (
-        lf["store_display_name"].astype(str).map(_shorten_store)
-        + " · "
-        + lf["product_label"].astype(str)
-    )
+    lf["product_label"] = lf["store_display_name"].astype(str) + " · " + lf["product_label"].astype(str)
     lf["qty"] = lf["quantity"].fillna(0.0).astype(float)
     lf["sales_row"] = lf["line_total"].clip(lower=0).fillna(0.0).astype(float)
     g = (
@@ -1081,6 +1066,9 @@ def restock_recommendations_by_store(
                 "confidence_pct",
             ]
         )
+    inv_f = inv_f.copy()
+    if "store_display_name" in inv_f.columns:
+        inv_f["store_display_name"] = _fix_store_name_ocr_typos(inv_f["store_display_name"])
     inv_f = inv_f.copy()
     if "store_display_name" in inv_f.columns:
         inv_f["store_display_name"] = _fix_store_name_ocr_typos(inv_f["store_display_name"])
