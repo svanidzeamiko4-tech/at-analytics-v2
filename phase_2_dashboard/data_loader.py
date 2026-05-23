@@ -414,11 +414,9 @@ def _compute_parent_invoice_is_return(df: pd.DataFrame) -> pd.Series:
         out = out | s.str.contains(_RETURN_DOC_RX, regex=True, na=False)
 
     if "raw_text_snippet" in df.columns:
-        s = df["raw_text_snippet"].fillna("").astype(str).str[:500]
+        s = df["raw_text_snippet"].fillna("").astype(str).str[:2000]
         out = out | s.str.contains(
-            r"ოპერაციის\s+შინაარსი[\s\S]{0,50}უკან\s+დაბრუნება|"
-            r"ოპერაციის\s+შინაარსი[\s\S]{0,50}საკრედიტო|"
-            r"კორექტირების\s+თარიღი",
+            r"უკან\s+დაბრუნება|საკრედიტო\s+ზედნადები|კორექტირების\s+თარიღი|საკრედიტო",
             regex=True,
             na=False,
         )
