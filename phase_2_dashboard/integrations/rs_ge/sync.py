@@ -11,6 +11,7 @@ from xml.sax.saxutils import escape
 import pandas as pd
 
 from integrations.rs_ge import config
+from integrations.rs_ge.importer import import_waybills_to_db
 from integrations.rs_ge.parser import parse_invoices
 
 _MOCK_PATH = Path(__file__).resolve().parent / "mock_data.xml"
@@ -148,6 +149,8 @@ def run_sync(db_path: Path | None = None) -> pd.DataFrame:
     ET.fromstring(xml_text.encode("utf-8"))
     df = parse_invoices(xml_text)
     save_to_db(df, db_path)
+    result = import_waybills_to_db(xml_text, db_path)
+    print(f"Imported: {result}")
     return df
 
 
